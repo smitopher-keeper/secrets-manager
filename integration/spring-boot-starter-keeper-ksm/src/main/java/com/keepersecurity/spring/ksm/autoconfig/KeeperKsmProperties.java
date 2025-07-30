@@ -1,0 +1,166 @@
+package com.keepersecurity.spring.ksm.autoconfig;
+
+
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Configuration properties for Keeper Secrets Manager (KSM).
+ * <p>
+ * Prefix = "keeper.ksm". These properties can be set in application.properties or YAML.
+ */
+@ConfigurationProperties(prefix = "keeper.ksm")
+public class KeeperKsmProperties implements InitializingBean{
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmProperties.class);
+
+  /**
+   * Path to the secret container that holds the Keeper Secrets Manager configuration JSON. This can
+   * be a file path or a location inside a secrets service.
+   * <p>
+   * If a one-time token is provided and this path is set, the token will be redeemed and the config
+   * stored at this location. If not set, {@link KsmConfigProvider#FILE} is used and a token is provided, a default file "ksm-config.json"
+   * will be used in the secretPath property.
+   */
+  private Path secretPath;
+  /**
+   * One-Time Access Token for Keeper Secrets Manager initialization.
+   * <p>
+   * Use this token (provided by Keeper) to perform a one-time retrieval of the configuration. After
+   * using it once to create the config file, remove this token from application settings.
+   */
+  private Path oneTimeToken;
+
+  /**
+   * Fully qualified class name of a JCA security provider to register. Optional. If not set, a
+   * provider will be chosen automatically.
+   */
+  private Class<? extends Provider> providerClass;
+
+  /**
+   * Type of secret container to use. Supported values are "file" and "pkcs11". Defaults to "file".
+   */
+  private KsmConfigProvider providerType = KsmConfigProvider.DEFAULT;
+
+  /**
+   * User name for accessing the secret container. Defaults to "changeme".
+   */
+  private String secretUser = "changeme";
+
+  /**
+   * Password for accessing the secret container. Defaults to "changeme".
+   */
+  private String secretPassword = "changeme";
+
+  /**
+   * Path to the PKCS#11 library when using the "pkcs11" container type.
+   */
+  private String pkcs11Library;
+
+  /**
+   * When true, the application will fail to start unless the IL-5 certified provider is
+   * available. This can be used to enforce IL-5 compliance.
+   */
+  private boolean enforceIl5 = false;
+
+  // Getters and setters for the properties
+  public Path getSecretPath() {
+    return secretPath;
+  }
+
+  public void setSecretPath(Path secretPath) {
+    this.secretPath = secretPath;
+  }
+
+  public Path getOneTimeToken() {
+    return oneTimeToken;
+  }
+
+  public void setOneTimeToken(Path oneTimeToken) {
+    this.oneTimeToken = oneTimeToken;
+  }
+
+  public Class<? extends Provider> getProviderClass() {
+    return providerClass;
+  }
+
+  public void setProvider(Class<? extends Provider> providerClass) {
+    this.providerClass = providerClass;
+  }
+
+  public KsmConfigProvider getProviderType() {
+    return providerType;
+  }
+
+  public void setContainerType(KsmConfigProvider providerType) {
+    this.providerType = providerType;
+  }
+
+  public String getSecretUser() {
+    return secretUser;
+  }
+
+  public void setSecretUser(String secretUser) {
+    this.secretUser = secretUser;
+  }
+
+  public String getSecretPassword() {
+    return secretPassword;
+  }
+
+  public void setSecretPassword(String secretPassword) {
+    this.secretPassword = secretPassword;
+  }
+
+  public String getPkcs11Library() {
+    return pkcs11Library;
+  }
+
+  public void setPkcs11Library(String pkcs11Library) {
+    this.pkcs11Library = pkcs11Library;
+  }
+
+  public boolean isEnforceIl5() {
+    return enforceIl5;
+  }
+
+  public void setEnforceIl5(boolean enforceIl5) {
+    this.enforceIl5 = enforceIl5;
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    if (providerType.isCloudBased()) {
+      notImplemented(providerType);
+    }
+    if (enforceIl5 && !providerType.isIl5Ready()) {
+      notIl5Compliant(providerType);
+    }
+    if (secretPath == null) {
+      secretPath = Paths.get(providerType.getDefaultLocation());
+    }
+    if (oneTimeToken != null && Files.exists(secretPath)) {
+      throw new IllegalStateException("both a KMS One Time Token is configured and a KMS config store %s exist".formatted(secretPath));
+    }
+  }
+
+  private void notImplemented(KsmConfigProvider configProvider) {
+    String message = "%s is not implemented".formatted(configProvider);
+    LOGGER.atError().log(message);
+    throw new IllegalStateException(message);
+  }
+
+  private void notIl5Compliant(KsmConfigProvider configProvider) {
+    String message = "%s is not IL-5 compliant".formatted(configProvider);
+    LOGGER.atError().log(message);
+    throw new IllegalStateException(message);
+  }
+
+}

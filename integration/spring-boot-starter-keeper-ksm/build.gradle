@@ -1,0 +1,107 @@
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.keepersecurity'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(24)
+	}
+    withSourcesJar()
+    withJavadocJar()
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.5.4"
+    }
+}
+
+dependencies {
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'com.keepersecurity.secrets-manager:core:17.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.slf4j:slf4j-api'
+    compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+
+    compileOnly 'org.bouncycastle:bc-fips:2.1.0'
+    compileOnly 'org.bouncycastle:bcprov-jdk18on:1.78' 
+//    compileOnly 'com.keepersecurity.secrets-manager:aws:1.0.0'
+    compileOnly 'software.amazon.awssdk:kms:2.20.28'
+    compileOnly 'software.amazon.awssdk:auth:2.20.28'
+//    compileOnly 'com.keepersecurity.secrets-manager:azurekv:1.0.0'
+//    compileOnly 'com.keepersecurity.secrets-manager:gcp:1.0.0'
+    compileOnly 'com.google.cloud:google-cloud-kms:2.62.0'
+    compileOnly 'com.google.auth:google-auth-library-oauth2-http:1.33.1'
+//    compileOnly 'com.keepersecurity.secrets-manager:oracle:1.0.0'
+    compileOnly 'com.oracle.oci.sdk:oci-java-sdk-keymanagement:3.60.0'
+    compileOnly 'com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.60.0'
+    compileOnly 'com.oracle.oci.sdk:oci-java-sdk-common:3.60.0'
+    
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('compileJava') {
+    options.annotationProcessorPath = configurations.compileOnly
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// Ensure the jar is marked as a Spring Boot auto-configurable module (if needed, optional)
+jar {
+    archiveBaseName = 'spring-boot-starter-keeper-ksm'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = 'com.keepersecurity'
+            artifactId = 'spring-boot-starter-ksm'
+            version = '0.0.1-SNAPSHOT'
+
+            pom {
+                name = 'Spring Boot Starter for Keeper Security'
+                description = 'A Spring Boot starter that integrates with Keeper Secrets Manager using HSM-backed X25519 key decryption.'
+                url = 'https://github.com/Keeper-Security/keeper-central'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'keeper'
+                        name = 'Keeper Security'
+                        email = 'support@keepersecurity.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/Keeper-Security/keeper-central.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/Keeper-Security/keeper-central.git'
+                    url = 'https://github.com/Keeper-Security/keeper-central'
+                }
+            }
+        }
+    }
+}
