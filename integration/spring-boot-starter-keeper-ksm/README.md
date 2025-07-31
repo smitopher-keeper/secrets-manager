@@ -114,6 +114,18 @@ For detailed steps see [SUN_PKCS11.md](SUN_PKCS11.md).
 
 If neither property is set, the auto-configuration will not initialize and will throw an error to remind you to configure KSM credentials.
 
+### Optional Cloud and HSM Providers
+
+To keep the starter lightweight, SDKs for providers like AWS Secrets Manager, Azure Key Vault, and Google Secret Manager are not included. Add the corresponding dependency to your application's build file to enable a provider. For example:
+
+```groovy
+implementation 'software.amazon.awssdk:secretsmanager:2.20.28'
+implementation 'com.azure:azure-security-keyvault-secrets:4.9.2'
+implementation 'com.google.cloud:google-cloud-secretmanager:2.29.0'
+```
+
+Only the providers you include will be activated at runtime.
+
 ## Testing
 
 To run the unit tests:
