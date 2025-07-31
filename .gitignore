@@ -61,6 +61,7 @@ venv.bak/
 # Don't add Config files
 keeper.ini*
 *config*.json
+!integration/spring-boot-starter-keeper-ksm/src/test/resources/starter-ksm-config.json
 .secrets
 ansible.cfg
 
