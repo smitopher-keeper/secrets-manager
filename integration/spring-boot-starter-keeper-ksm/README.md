@@ -52,8 +52,11 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 | `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | *not implemented* |
 | `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | *not implemented* |
 | `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | *not implemented* |
+
 | `raw`     | `kms-config.json` | IL-2 | None | plain JSON file |
 | `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
+
+**Caution:** The `raw` container stores secrets in clear text and should only be used for testing or other non-production environments.
 
 ### IL-5 Provider Summary
 
