@@ -7,7 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest(properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
+@SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
+    properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
 class KeeperKsmAutoConfigurationTest {
 
     @Autowired
