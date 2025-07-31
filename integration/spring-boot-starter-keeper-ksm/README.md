@@ -110,6 +110,7 @@ Using the `SUN_PKCS11` provider requires the JDK's SunPKCS11 security provider
 to be configured with a file that references your HSM's PKCS#11 library. Ensure
 the provider is registered before the application starts and specify the library
 path with `keeper.ksm.pkcs11-library` when using the `pkcs11` container type.
+For detailed steps see [SUN_PKCS11.md](SUN_PKCS11.md).
 
 If neither property is set, the auto-configuration will not initialize and will throw an error to remind you to configure KSM credentials.
 

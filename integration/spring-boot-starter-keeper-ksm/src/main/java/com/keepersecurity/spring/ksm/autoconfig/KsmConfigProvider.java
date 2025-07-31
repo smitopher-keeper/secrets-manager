@@ -13,8 +13,12 @@ public enum KsmConfigProvider {
     ORACLE_FIPS("kms-config.p12", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     /**
      * Uses the JVM's built-in SunPKCS11 provider.
-     * <p>Requires a configured PKCS#11 library and provider configuration
-     * so the JDK can load the native module at runtime.</p>
+     * <p>
+     * The provider must be registered with a configuration file that
+     * references your HSM's PKCS#11 library so the JDK can load the
+     * native module. See the {@code SUN_PKCS11.md} document for details
+     * on enabling the provider.
+     * </p>
      */
     SUN_PKCS11("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     AWS("aws-secrets://region/resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
