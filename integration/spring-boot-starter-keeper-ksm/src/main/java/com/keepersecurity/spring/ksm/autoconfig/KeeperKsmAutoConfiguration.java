@@ -113,21 +113,13 @@ public class KeeperKsmAutoConfiguration {
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
     var providerType = props.getProviderType();
-    if (providerType.isRaw()) {
-      saveRawConfigToFile(config, props);
-    } else if (providerType.isKeystoreBased()) {
-      saveConfigToKeystore(config, props);
-    } else if (providerType == KsmConfigProvider.AWS &&
-        classAvailable("software.amazon.awssdk.services.secretsmanager.SecretsManagerClient")) {
-      AwsSaver.save(config, props);
-    } else if (providerType == KsmConfigProvider.AZURE &&
-        classAvailable("com.azure.security.keyvault.secrets.SecretClient")) {
-      AzureSaver.save(config, props);
-    } else if (providerType == KsmConfigProvider.GOOGLE &&
-        classAvailable("com.google.cloud.secretmanager.v1.SecretManagerServiceClient")) {
-      GoogleSaver.save(config, props);
-    } else {
-      throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
+    switch (providerType) {
+      case RAW -> saveRawConfigToFile(config, props);
+      case DEFAULT, NAMED, BC_FIPS, ORACLE_FIPS -> saveConfigToKeystore(config, props);
+      case AWS -> AwsSaver.save(config, props);
+      case AZURE -> AzureSaver.save(config, props);
+      case GOOGLE -> GoogleSaver.save(config, props);
+      default -> throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
     }
 
     try {
@@ -189,9 +181,9 @@ public class KeeperKsmAutoConfiguration {
   }
 
 
-  @ConditionalOnClass(name = "software.amazon.awssdk.services.secretsmanager.SecretsManagerClient")
   private static class AwsSaver {
     static void save(ObjectNode config, KeeperKsmProperties props) {
+      requireClass("software.amazon.awssdk.services.secretsmanager.SecretsManagerClient");
       try {
         software.amazon.awssdk.services.secretsmanager.SecretsManagerClient client =
             software.amazon.awssdk.services.secretsmanager.SecretsManagerClient.builder().build();
@@ -215,9 +207,9 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  @ConditionalOnClass(name = "com.azure.security.keyvault.secrets.SecretClient")
   private static class AzureSaver {
     static void save(ObjectNode config, KeeperKsmProperties props) {
+      requireClass("com.azure.security.keyvault.secrets.SecretClient");
       try {
         com.azure.security.keyvault.secrets.SecretClient client =
             new com.azure.security.keyvault.secrets.SecretClientBuilder()
@@ -231,9 +223,9 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  @ConditionalOnClass(name = "com.google.cloud.secretmanager.v1.SecretManagerServiceClient")
   private static class GoogleSaver {
     static void save(ObjectNode config, KeeperKsmProperties props) {
+      requireClass("com.google.cloud.secretmanager.v1.SecretManagerServiceClient");
       try (com.google.cloud.secretmanager.v1.SecretManagerServiceClient client =
           com.google.cloud.secretmanager.v1.SecretManagerServiceClient.create()) {
         String secretId = props.getSecretPath().toString();
@@ -264,15 +256,11 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private boolean classAvailable(String fqcn) {
+  private static void requireClass(String fqcn) {
     try {
       Class.forName(fqcn);
-      return true;
     } catch (ClassNotFoundException e) {
-      return false;
+      throw new IllegalStateException(fqcn + " not found on the classpath");
     }
   }
-
-
 }
-
