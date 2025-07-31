@@ -263,7 +263,4 @@ public class KeeperKsmAutoConfiguration {
       throw new IllegalStateException(fqcn + " not found on the classpath");
     }
   }
-
-
 }
-
