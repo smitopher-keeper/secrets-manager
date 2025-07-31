@@ -1,0 +1,9 @@
+{
+  "hostname": "localhost",
+  "serverPublicKeyId": "1",
+  "clientId": "client-id",
+  "clientKey": "client-key",
+  "appKey": "app-key",
+  "appOwnerPublicKey": "owner-public-key",
+  "privateKey": "private-key"
+}

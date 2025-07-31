@@ -10,12 +10,20 @@ import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_PUBLIC_K
 import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_SERVER_PUBIC_KEY_ID;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.Provider;
+import java.security.Security;
+import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -86,8 +94,13 @@ public class KeeperKsmAutoConfiguration {
   }
 
   private String getKmsConfig(KeeperKsmProperties properties) {
-    // TODO Auto-generated method stub
-    return null;
+    try {
+      return Files.readString(properties.getSecretPath());
+    } catch (IOException e) {
+      String message = "failure loading KMS Config";
+      LOGGER.atError().setCause(e).log(message);
+      throw new IllegalStateException(message, e);
+    }
   }
 
   private void consumeToken(String token, Path tokenFile, KeeperKsmProperties props) {
@@ -100,9 +113,12 @@ public class KeeperKsmAutoConfiguration {
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
     var providerType = props.getProviderType();
-    switch (providerType) {
-      case RAW -> saveRawConfigToFile(config, props);
-      default -> throw new IllegalArgumentException("Unexpected value: " + providerType);
+    if (providerType.isRaw()) {
+      saveRawConfigToFile(config, props);
+    } else if (providerType.isKeystoreBased()) {
+      saveConfigToKeystore(config, props);
+    } else {
+      throw new IllegalArgumentException("Unexpected value: " + providerType);
     }
 
     try {
@@ -128,7 +144,39 @@ public class KeeperKsmAutoConfiguration {
   }
 
   private void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
-    // TODO Auto-generated method stub
+    try {
+      Path keystorePath = props.getSecretPath();
+      Files.createDirectories(keystorePath.getParent());
+
+      Class<? extends Provider> providerClass = props.getProviderClass();
+      if (providerClass != null) {
+        Provider provider = providerClass.getDeclaredConstructor().newInstance();
+        Security.addProvider(provider);
+      }
+
+      char[] password = props.getSecretPassword().toCharArray();
+      KeyStore ks = KeyStore.getInstance("PKCS12");
+      if (Files.exists(keystorePath)) {
+        try (InputStream in = Files.newInputStream(keystorePath)) {
+          ks.load(in, password);
+        }
+      } else {
+        ks.load(null, null);
+      }
+
+      SecretKeySpec secret = new SecretKeySpec(config.toString().getBytes(StandardCharsets.UTF_8), "RAW");
+      KeyStore.SecretKeyEntry entry = new KeyStore.SecretKeyEntry(secret);
+      KeyStore.PasswordProtection protection = new KeyStore.PasswordProtection(password);
+      ks.setEntry(props.getSecretUser(), entry, protection);
+
+      try (OutputStream out = Files.newOutputStream(keystorePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        ks.store(out, password);
+      }
+    } catch (IOException | GeneralSecurityException | ReflectiveOperationException e) {
+      String message = "Failed to persist the KMS Config keystore";
+      LOGGER.atError().setCause(e).log(message);
+      throw new IllegalStateException(message, e);
+    }
   }
 
   private void saveConfigToCloud(ObjectNode config, KeeperKsmProperties props) {
