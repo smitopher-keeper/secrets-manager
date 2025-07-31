@@ -33,8 +33,8 @@ public class KeeperKsmProperties implements InitializingBean{
   /**
    * Path to a file containing a One-Time Access Token for Keeper Secrets Manager initialization.
    * <p>
-   * The starter reads the token from this file and deletes the file immediately before redeeming the token
-   * to generate the configuration. Remove any leftover token files once the config has been created.
+   * The starter reads the token from this file, redeems it to generate the configuration and then deletes the file.
+   * After a successful run the application terminates and you should remove this property from your configuration.
    */
   private Path oneTimeToken;
 
