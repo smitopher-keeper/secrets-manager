@@ -1,43 +1,34 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
-import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_HOSTNAME;
-import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_CLIENT_ID;
-import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_PRIVATE_KEY;
-import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_CLIENT_KEY;
 import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_APP_KEY;
+import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_CLIENT_ID;
+import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_CLIENT_KEY;
+import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_HOSTNAME;
 import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_OWNER_PUBLIC_KEY;
+import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_PRIVATE_KEY;
 import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_PUBLIC_KEY;
 import static com.keepersecurity.secretsManager.core.SecretsManager.KEY_SERVER_PUBIC_KEY_ID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.keepersecurity.secretsManager.core.InMemoryStorage;
-import com.keepersecurity.secretsManager.core.KeyValueStorage;
-import com.keepersecurity.secretsManager.core.LocalConfigStorage;
-import com.keepersecurity.secretsManager.core.OneTimeCode;
-import com.keepersecurity.secretsManager.core.SecretsManager;
-import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 import java.io.IOException;
-import java.lang.reflect.RecordComponent;
-import java.lang.runtime.ObjectMethods;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.KeyStore;
-import java.security.Provider;
-import java.security.Security;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.keepersecurity.secretsManager.core.InMemoryStorage;
+import com.keepersecurity.secretsManager.core.KeyValueStorage;
+import com.keepersecurity.secretsManager.core.SecretsManager;
+import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 
 /**
  * Auto-configuration for Keeper Secrets Manager integration.
