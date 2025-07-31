@@ -31,10 +31,10 @@ public class KeeperKsmProperties implements InitializingBean{
    */
   private Path secretPath;
   /**
-   * One-Time Access Token for Keeper Secrets Manager initialization.
+   * Path to a file containing a One-Time Access Token for Keeper Secrets Manager initialization.
    * <p>
-   * Use this token (provided by Keeper) to perform a one-time retrieval of the configuration. After
-   * using it once to create the config file, remove this token from application settings.
+   * The starter will read the token from this file, redeem it to generate the configuration, and
+   * delete the file afterwards. Remove the token file once the config has been created.
    */
   private Path oneTimeToken;
 
@@ -45,7 +45,11 @@ public class KeeperKsmProperties implements InitializingBean{
   private Class<? extends Provider> providerClass;
 
   /**
-   * Type of secret container to use. Supported values are "file" and "pkcs11". Defaults to "file".
+   * Type of secret container to use. Supported values are
+   * {@code default}, {@code named}, {@code bc_fips}, {@code aws},
+   * {@code azure}, {@code google}, {@code raw} and {@code hsm}.
+   * Cloud-based options (aws, azure, google) are currently not
+   * implemented. Defaults to {@code default}.
    */
   private KsmConfigProvider providerType = KsmConfigProvider.DEFAULT;
 
