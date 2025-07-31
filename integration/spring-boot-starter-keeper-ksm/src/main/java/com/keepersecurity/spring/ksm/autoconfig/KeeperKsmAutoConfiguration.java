@@ -117,8 +117,17 @@ public class KeeperKsmAutoConfiguration {
       saveRawConfigToFile(config, props);
     } else if (providerType.isKeystoreBased()) {
       saveConfigToKeystore(config, props);
+    } else if (providerType == KsmConfigProvider.AWS &&
+        classAvailable("software.amazon.awssdk.services.secretsmanager.SecretsManagerClient")) {
+      AwsSaver.save(config, props);
+    } else if (providerType == KsmConfigProvider.AZURE &&
+        classAvailable("com.azure.security.keyvault.secrets.SecretClient")) {
+      AzureSaver.save(config, props);
+    } else if (providerType == KsmConfigProvider.GOOGLE &&
+        classAvailable("com.google.cloud.secretmanager.v1.SecretManagerServiceClient")) {
+      GoogleSaver.save(config, props);
     } else {
-      throw new IllegalArgumentException("Unexpected value: " + providerType);
+      throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
     }
 
     try {
@@ -179,8 +188,89 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private void saveConfigToCloud(ObjectNode config, KeeperKsmProperties props) {
-    // TODO Auto-generated method stub
+
+  @ConditionalOnClass(name = "software.amazon.awssdk.services.secretsmanager.SecretsManagerClient")
+  private static class AwsSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      try {
+        software.amazon.awssdk.services.secretsmanager.SecretsManagerClient client =
+            software.amazon.awssdk.services.secretsmanager.SecretsManagerClient.builder().build();
+        String id = props.getSecretPath().toString();
+        try {
+          client.createSecret(software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest
+              .builder()
+              .name(id)
+              .secretString(config.toString())
+              .build());
+        } catch (software.amazon.awssdk.services.secretsmanager.model.ResourceExistsException e) {
+          client.putSecretValue(software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest
+              .builder()
+              .secretId(id)
+              .secretString(config.toString())
+              .build());
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to persist the KMS Config to AWS Secrets Manager", e);
+      }
+    }
+  }
+
+  @ConditionalOnClass(name = "com.azure.security.keyvault.secrets.SecretClient")
+  private static class AzureSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      try {
+        com.azure.security.keyvault.secrets.SecretClient client =
+            new com.azure.security.keyvault.secrets.SecretClientBuilder()
+                .vaultUrl(props.getSecretPath().toString())
+                .credential(new com.azure.identity.DefaultAzureCredentialBuilder().build())
+                .buildClient();
+        client.setSecret(props.getSecretUser(), config.toString());
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to persist the KMS Config to Azure Key Vault", e);
+      }
+    }
+  }
+
+  @ConditionalOnClass(name = "com.google.cloud.secretmanager.v1.SecretManagerServiceClient")
+  private static class GoogleSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      try (com.google.cloud.secretmanager.v1.SecretManagerServiceClient client =
+          com.google.cloud.secretmanager.v1.SecretManagerServiceClient.create()) {
+        String secretId = props.getSecretPath().toString();
+        com.google.cloud.secretmanager.v1.SecretName name =
+            com.google.cloud.secretmanager.v1.SecretName.parse(secretId);
+        try {
+          client.createSecret(
+              com.google.cloud.secretmanager.v1.CreateSecretRequest.newBuilder()
+                  .setParent(name.getProject())
+                  .setSecretId(name.getSecret())
+                  .setSecret(com.google.cloud.secretmanager.v1.Secret.newBuilder().build())
+                  .build());
+        } catch (com.google.api.gax.rpc.AlreadyExistsException ignore) {
+          // secret already exists
+        }
+        com.google.cloud.secretmanager.v1.SecretPayload payload =
+            com.google.cloud.secretmanager.v1.SecretPayload.newBuilder()
+                .setData(com.google.protobuf.ByteString.copyFromUtf8(config.toString()))
+                .build();
+        client.addSecretVersion(
+            com.google.cloud.secretmanager.v1.AddSecretVersionRequest.newBuilder()
+                .setParent(name.toString())
+                .setPayload(payload)
+                .build());
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to persist the KMS Config to Google Secret Manager", e);
+      }
+    }
+  }
+
+  private boolean classAvailable(String fqcn) {
+    try {
+      Class.forName(fqcn);
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 
 

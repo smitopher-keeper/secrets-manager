@@ -143,7 +143,9 @@ public class KeeperKsmProperties implements InitializingBean{
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    if (providerType.isCloudBased()) {
+    if (providerType.isCloudBased() && providerType != KsmConfigProvider.AWS
+        && providerType != KsmConfigProvider.AZURE
+        && providerType != KsmConfigProvider.GOOGLE) {
       notImplemented(providerType);
     }
     if (enforceIl5 && !providerType.isIl5Ready()) {
