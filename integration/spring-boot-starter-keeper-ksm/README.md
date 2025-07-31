@@ -55,6 +55,24 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 | `raw`     | `kms-config.json` | IL-2 | None | plain JSON file |
 | `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
 
+### IL-5 Provider Summary
+
+The following providers from the
+[`KsmConfigProvider`](src/main/java/com/keepersecurity/spring/ksm/autoconfig/KsmConfigProvider.java)
+enum are IL-5 ready. Each entry complies with the corresponding security
+profile indicated below:
+
+| Provider | Enum constant | Compliance highlights |
+|----------|---------------|-----------------------|
+| Default Java Keystore | `DEFAULT` | FedRAMP High profile. Suitable for IL-5 workloads using the JVM keystore. |
+| Bouncy Castle FIPS Keystore | `BC_FIPS` | Utilizes the Bouncy Castle FIPS provider for FIPS 140-2 compliance. |
+| AWS Secrets Manager | `AWS` | Cloud-based integration that meets FedRAMP High. |
+| Azure Key Vault | `AZURE` | Cloud-based integration that meets FedRAMP High. |
+| Hardware Security Module | `HSM` | Stores configuration through PKCS#11, providing FIPS 140-2 compliance. |
+
+All of the above return `true` from `isIl5Ready()` in `KsmConfigProvider`,
+signaling that they meet IL-5 security requirements.
+
 - **Key Store Placeholder** – You can store the configuration in a Java KeyStore instead of a plain file. Set the container type to `keystore` and optionally provide your own alias and password:
   ```properties
   keeper.ksm.container-type = keystore
