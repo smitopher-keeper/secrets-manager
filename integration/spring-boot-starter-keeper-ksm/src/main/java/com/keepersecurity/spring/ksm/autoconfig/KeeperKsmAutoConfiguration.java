@@ -30,6 +30,7 @@ import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,7 @@ public class KeeperKsmAutoConfiguration {
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);
     // performing a get consumes the one time token
-    SecretsManager.getFolders(options);
+    SecretsManager.getSecrets(options, List.of(UUID.randomUUID().toString()));
 
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
