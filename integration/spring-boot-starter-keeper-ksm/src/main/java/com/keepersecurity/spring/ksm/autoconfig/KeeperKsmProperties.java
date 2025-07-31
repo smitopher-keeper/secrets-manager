@@ -1,8 +1,5 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
-
-
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Provider;
@@ -49,9 +46,7 @@ public class KeeperKsmProperties implements InitializingBean{
    * {@code default}, {@code named}, {@code bc_fips},
    * {@code oracle_fips}, {@code sun_pkcs11}, {@code aws},
    * {@code azure}, {@code aws_hsm}, {@code azure_hsm},
-   * {@code google}, {@code fortanix}, {@code raw} and {@code hsm}.
-   * Cloud-based options (aws, azure, google) are currently not
-   * implemented. Defaults to {@code default}.
+   * Defaults to {@code default}.
    */
   private KsmConfigProvider providerType = KsmConfigProvider.DEFAULT;
 
@@ -143,26 +138,12 @@ public class KeeperKsmProperties implements InitializingBean{
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    if (providerType.isCloudBased() && providerType != KsmConfigProvider.AWS
-        && providerType != KsmConfigProvider.AZURE
-        && providerType != KsmConfigProvider.GOOGLE) {
-      notImplemented(providerType);
-    }
     if (enforceIl5 && !providerType.isIl5Ready()) {
       notIl5Compliant(providerType);
     }
     if (secretPath == null) {
       secretPath = Paths.get(providerType.getDefaultLocation());
     }
-    if (oneTimeToken != null && Files.exists(secretPath)) {
-      throw new IllegalStateException("both a KMS One Time Token is configured and a KMS config store %s exist".formatted(secretPath));
-    }
-  }
-
-  private void notImplemented(KsmConfigProvider configProvider) {
-    String message = "%s is not implemented".formatted(configProvider);
-    LOGGER.atError().log(message);
-    throw new IllegalStateException(message);
   }
 
   private void notIl5Compliant(KsmConfigProvider configProvider) {
