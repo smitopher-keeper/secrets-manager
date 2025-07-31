@@ -57,9 +57,11 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
-   * Configures the SecretsManagerOptions bean using KeeperKsmProperties. If a one-time token is
-   * provided, it will initialize the local config storage (and create the config file). If a config
-   * file path is provided, it will load credentials from that file.
+   * Configures the {@link SecretsManagerOptions} bean using {@link KeeperKsmProperties}. If a
+   * one-time token is provided, it will initialize the local config storage (and create the config
+   * file). The token file is removed after the configuration is written and the application will
+   * terminate, prompting you to remove the property from your configuration. If a config file path
+   * is provided, credentials are loaded from that file instead.
    *
    * @param properties the Keeper KSM properties (bound from application configuration)
    * @return a SecretsManagerOptions instance configured for Keeper Secrets Manager access
@@ -72,13 +74,12 @@ public class KeeperKsmAutoConfiguration {
       String token;
       try {
         token = Files.readString(path);
-        Files.delete(path);
       } catch (IOException e) {
-        String message = "failure loading KMS One Tome Token";
+        String message = "failure loading KMS One Time Token";
         LOGGER.atError().setCause(e).log(message);
         throw new IllegalStateException(message, e);
       }
-      consumeToken(token, properties);
+      consumeToken(token, path, properties);
     });
     KeyValueStorage storage = new InMemoryStorage(getKmsConfig(properties));
     return new SecretsManagerOptions(storage);
@@ -89,7 +90,7 @@ public class KeeperKsmAutoConfiguration {
     return null;
   }
 
-  private void consumeToken(String token, KeeperKsmProperties props) {
+  private void consumeToken(String token, Path tokenFile, KeeperKsmProperties props) {
     InMemoryStorage inMemoryStorage = new InMemoryStorage();
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);
@@ -103,6 +104,15 @@ public class KeeperKsmAutoConfiguration {
       case RAW -> saveRawConfigToFile(config, props);
       default -> throw new IllegalArgumentException("Unexpected value: " + providerType);
     }
+
+    try {
+      Files.deleteIfExists(tokenFile);
+    } catch (IOException e) {
+      LOGGER.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
+    }
+
+    LOGGER.atInfo().log("One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.");
+    System.exit(0);
   }
 
   private void saveRawConfigToFile(ObjectNode config, KeeperKsmProperties props) {
