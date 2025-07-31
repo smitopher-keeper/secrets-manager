@@ -18,12 +18,12 @@ This will transitively include the Keeper Secrets Manager SDK and required Sprin
 
 You can configure the KSM credentials via Spring Boot properties (e.g., in your `application.properties` or YAML):
 
-- **Option 1: One-Time Token (OTT)** – Use this for first-time setup. Provide the one-time access token given by Keeper:
-  ```properties
-  keeper.ksm.one-time-token = YOUR_ONE_TIME_TOKEN_HERE
-  keeper.ksm.secret-path = path/to/ksm-config.json
-  ```
-  On the first run, the starter will use the token to retrieve your KSM configuration and save it to the specified JSON file. **Note:** One-time tokens can only be used once; after the config file is created, remove the token from your configuration.
+- **Option 1: One-Time Token (OTT)** – Use this for first-time setup. Provide the **path** to a file that contains the one-time access token given by Keeper:
+```properties
+keeper.ksm.one-time-token = path/to/one-time-token.txt
+keeper.ksm.secret-path = path/to/ksm-config.json
+```
+On the first run, the starter will read the token from the file, retrieve your KSM configuration and save it to the specified JSON file. The token file is deleted after use. **Note:** One-time tokens can only be used once; after the config file is created, remove the token file from your system.
 
 - **Option 2: Existing Config File** – If you already have a Keeper config JSON (e.g., from a previous initialization), you can just specify:
   ```properties
@@ -39,6 +39,21 @@ You can configure the KSM credentials via Spring Boot properties (e.g., in your 
   keeper.ksm.secret-password = changeme
   ```
 When `container-type` is `pkcs11`, this starter uses `Pkcs11ConfigStorage`. This class only stores the Keeper configuration in memory and **does not** load the specified library as a real PKCS#11 provider. A full PKCS#11 integration would require additional implementation.
+
+### Supported Container Types
+
+The `keeper.ksm.container-type` property accepts the following values.  Options marked *not implemented* are reserved for future releases.
+
+| Value | Default location | Security level | Compliance profile | Notes |
+|-------|-----------------|----------------|--------------------|-------|
+| `default` | `kms-config.p12` | IL-5 | FedRAMP High | default Java keystore |
+| `named`   | `kms-config.p12` | IL-2 | None | named keystore entry |
+| `bc_fips` | `kms-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
+| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | *not implemented* |
+| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | *not implemented* |
+| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | *not implemented* |
+| `raw`     | `kms-config.json` | IL-2 | None | plain JSON file |
+| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
 
 - **Key Store Placeholder** – You can store the configuration in a Java KeyStore instead of a plain file. Set the container type to `keystore` and optionally provide your own alias and password:
   ```properties

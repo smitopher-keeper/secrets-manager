@@ -18,10 +18,10 @@ Copy the provided `src/test/resources/starter-ksm-config.json` test fixture to y
 keeper.ksm.secret-path=path/to/ksm-config.json
 ```
 
-Alternatively, use a one-time token to generate the config:
+Alternatively, provide a path to a one-time token file to generate the config:
 
 ```properties
-keeper.ksm.one-time-token=<YOUR_ONE_TIME_TOKEN>
+keeper.ksm.one-time-token=path/to/one-time-token.txt
 keeper.ksm.secret-path=ksm-config.json
 ```
 
