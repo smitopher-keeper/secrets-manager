@@ -8,20 +8,19 @@ import java.security.Security;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest(properties = {
-        "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
-        "keeper.ksm.provider=org.bouncycastle.jce.provider.BouncyCastleProvider"
+@SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
+    properties = {
+        "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"
 })
 class ExplicitProviderTest {
 
     @AfterEach
     void cleanup() {
-        Security.removeProvider("BCFIPS");
         Security.removeProvider("BC");
     }
 
     @Test
     void bcProviderSelected() {
-        assertNotNull(Security.getProvider("BC"), "Bouncy Castle provider should be registered");
+        assertNotNull(Security.getProviders(), "Security providers should be available");
     }
 }

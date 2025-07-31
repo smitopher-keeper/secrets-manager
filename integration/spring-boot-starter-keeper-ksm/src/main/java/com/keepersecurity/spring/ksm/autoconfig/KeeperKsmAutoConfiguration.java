@@ -17,7 +17,6 @@ import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import com.keepersecurity.secretsManager.core.OneTimeCode;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
-import kotlinx.serialization.json.JsonObject;
 import java.io.IOException;
 import java.lang.reflect.RecordComponent;
 import java.lang.runtime.ObjectMethods;

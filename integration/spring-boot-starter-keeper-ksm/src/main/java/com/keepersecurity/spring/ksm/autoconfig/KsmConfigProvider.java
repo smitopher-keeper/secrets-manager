@@ -1,12 +1,28 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
+/**
+ * Supported configuration providers for Keeper Secrets Manager.
+ * <p>
+ * Each enum constant specifies the default location of the configuration,
+ * the Impact Level (IL) readiness, and the commercial compliance profile.
+ */
 public enum KsmConfigProvider {
-    DEFAULT("kms-config.p12", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
+    DEFAULT("kms-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
     NAMED("kms-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
     BC_FIPS("kms-config.bcfks", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
+    ORACLE_FIPS("kms-config.p12", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
+    /**
+     * Uses the JVM's built-in SunPKCS11 provider.
+     * <p>Requires a configured PKCS#11 library and provider configuration
+     * so the JDK can load the native module at runtime.</p>
+     */
+    SUN_PKCS11("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     AWS("aws-secrets://region/resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
     AZURE("azure-keyvault://vault/resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
+    AWS_HSM("aws-cloudhsm://resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
+    AZURE_HSM("azure-dedicatedhsm://resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
     GOOGLE("gcp-secretmanager://project/resource", SecurityLevel.IL4, SecurityProfile.FEDRAMP_MODERATE),
+    FORTANIX("fortanix://token", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     RAW("kms-config.json", SecurityLevel.IL2, SecurityProfile.NONE),
     HSM("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2);
 
@@ -45,7 +61,8 @@ public enum KsmConfigProvider {
     }
 
     public boolean isKeystoreBased() {
-        return this == DEFAULT || this == NAMED || this == BC_FIPS;
+        return this == DEFAULT || this == NAMED || this == BC_FIPS
+            || this == ORACLE_FIPS;
     }
 
     public boolean isRaw() {
@@ -53,7 +70,8 @@ public enum KsmConfigProvider {
     }
 
     public boolean isHsm() {
-        return this == HSM;
+        return this == HSM || this == SUN_PKCS11
+            || this == AWS_HSM || this == AZURE_HSM || this == FORTANIX;
     }
 
     public boolean isFedRAMPHigh() {
