@@ -1,7 +1,7 @@
 # Setup Guide
 
 ## Prerequisites
-- JDK 24
+- JDK 21
 - Gradle 8 or later
 - Keeper Secrets Manager One-Time Token or existing config JSON
 
