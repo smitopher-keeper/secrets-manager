@@ -11,14 +11,19 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for Keeper Secrets Manager (KSM).
+ * Holder for properties in the {@code keeper.ksm.*} namespace.
  * <p>
- * Prefix = "keeper.ksm". These properties can be set in application.properties or YAML.
+ * The values are bound from application configuration files so that the
+ * {@link KeeperKsmAutoConfiguration} can configure the SDK appropriately.
  */
 @ConfigurationProperties(prefix = "keeper.ksm")
 public class KeeperKsmProperties implements InitializingBean{
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmProperties.class);
+
+  // package-private constructor required for configuration binding
+  KeeperKsmProperties() {
+  }
 
   /**
    * Path to the secret container that holds the Keeper Secrets Manager configuration JSON. This can
