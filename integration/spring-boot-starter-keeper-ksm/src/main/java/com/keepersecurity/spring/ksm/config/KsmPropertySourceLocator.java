@@ -1,5 +1,6 @@
 package com.keepersecurity.spring.ksm.config;
 
+import com.keepersecurity.secretsManager.core.KeeperFolder;
 import com.keepersecurity.secretsManager.core.KeeperRecord;
 import com.keepersecurity.secretsManager.core.KeeperRecordField;
 import com.keepersecurity.secretsManager.core.KeeperSecrets;
@@ -7,6 +8,7 @@ import com.keepersecurity.secretsManager.core.Notation;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 import com.keepersecurity.spring.ksm.autoconfig.KeeperKsmProperties;
+import com.keepersecurity.spring.ksm.config.KsmRecordResolver;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,17 +28,33 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
 
   private final SecretsManagerOptions options;
   private final KeeperKsmProperties properties;
+  private final KsmRecordResolver resolver;
 
   public KsmPropertySourceLocator(SecretsManagerOptions options, KeeperKsmProperties properties) {
     this.options = options;
     this.properties = properties;
+    this.resolver = new KsmRecordResolver(options);
   }
 
   @Override
   public PropertySource<?> locate(Environment environment) {
-    List<String> recordIds = properties.getRecords();
-    if (recordIds == null || recordIds.isEmpty()) {
+    List<String> specs = properties.getRecords();
+    if (specs == null || specs.isEmpty()) {
       return null;
+    }
+    List<String> recordIds = new java.util.ArrayList<>();
+    KeeperSecrets allSecrets = null;
+    List<KeeperFolder> folders = null;
+    for (String spec : specs) {
+      if (resolver.isUid(spec)) {
+        recordIds.add(spec);
+      } else {
+        if (allSecrets == null) {
+          allSecrets = resolver.loadAllSecrets();
+          folders = resolver.loadAllFolders();
+        }
+        recordIds.add(resolver.resolve(spec, allSecrets, folders));
+      }
     }
     KeeperSecrets secrets = SecretsManager.getSecrets(options, recordIds);
     Map<String, Object> flat = new HashMap<>();
