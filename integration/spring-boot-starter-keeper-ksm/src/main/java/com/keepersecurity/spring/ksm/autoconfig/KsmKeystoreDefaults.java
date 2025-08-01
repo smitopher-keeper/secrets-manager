@@ -8,6 +8,8 @@ import java.security.Provider;
  */
 public final class KsmKeystoreDefaults {
 
+  private KsmKeystoreDefaults() {/* prevent instantiation */}
+
   /**
    * Determines the default keystore extension for the current JVM provider.
    *
