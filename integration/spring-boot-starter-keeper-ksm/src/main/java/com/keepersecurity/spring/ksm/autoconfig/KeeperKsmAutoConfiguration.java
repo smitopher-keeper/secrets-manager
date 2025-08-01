@@ -39,11 +39,11 @@ import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 
 /**
- * Auto-configuration for Keeper Secrets Manager integration.
+ * Spring Boot auto-configuration for Keeper Secrets Manager.
  * <p>
- * Creates a {@link SecretsManagerOptions} bean based on application properties for Keeper Secrets
- * Manager. Supports initialization from a one-time token or loading from an existing JSON config
- * file.
+ * This configuration class registers a {@link SecretsManagerOptions} bean based on
+ * {@link KeeperKsmProperties}. It supports initialisation from a one-time token
+ * as well as loading an existing JSON configuration file.
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
@@ -64,15 +64,18 @@ public class KeeperKsmAutoConfiguration {
         KEY_SERVER_PUBIC_KEY_ID);
   }
 
+  // package-private constructor required for Spring Boot
+  KeeperKsmAutoConfiguration() {
+  }
+
   /**
-   * Configures the {@link SecretsManagerOptions} bean using {@link KeeperKsmProperties}. If a
-   * one-time token is provided, it will initialize the local config storage (and create the config
-   * file). The token file is removed after the configuration is written and the application will
-   * terminate, prompting you to remove the property from your configuration. If a config file path
-   * is provided, credentials are loaded from that file instead.
+   * Creates a {@link SecretsManagerOptions} bean based on the supplied
+   * {@link KeeperKsmProperties}. If a one-time token is configured it will be
+   * consumed to initialise the local configuration before the application exits.
+   * Otherwise the existing configuration is loaded from the configured location.
    *
-   * @param properties the Keeper KSM properties (bound from application configuration)
-   * @return a SecretsManagerOptions instance configured for Keeper Secrets Manager access
+   * @param properties bound Keeper configuration properties
+   * @return a fully configured {@link SecretsManagerOptions} instance
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
