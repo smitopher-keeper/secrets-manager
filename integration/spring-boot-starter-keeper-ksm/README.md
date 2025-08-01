@@ -104,6 +104,14 @@ signaling that they meet IL-5 security requirements.
   keeper.ksm.enforce-il5 = true
   ```
 
+- **Record Selection** – Specify which Keeper record UIDs should be loaded and
+  exposed as Spring configuration properties:
+  ```properties
+  keeper.ksm.records = Ue8h6JyWUs7Iu6eY_mha-w,abcd1234
+  ```
+  Once the starter is on the classpath, the fields from these records become
+  available using keys like `Ue8h6JyWUs7Iu6eY_mha-w.password`.
+
 ### Sun PKCS#11 Requirements
 
 Using the `SUN_PKCS11` provider requires the JDK's SunPKCS11 security provider
