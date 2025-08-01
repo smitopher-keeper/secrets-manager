@@ -3,6 +3,7 @@ package com.keepersecurity.spring.ksm.autoconfig;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Provider;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,10 +74,12 @@ public class KeeperKsmProperties implements InitializingBean{
   private boolean enforceIl5 = false;
 
   /**
-   * Comma separated list of Keeper record UIDs to load and expose as
-   * configuration properties.
+   * List of Keeper record identifiers to load and expose as configuration
+   * properties. Each entry may be a record UID or a string in the form
+   * {@code "folder/record"} which will be resolved to the record UID at
+   * runtime.
    */
-  private List<String> records = List.of();
+  private List<String> records = new ArrayList<>();
 
   // Getters and setters for the properties
   public Path getSecretPath() {
