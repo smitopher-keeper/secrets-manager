@@ -108,7 +108,7 @@ public class KeeperKsmAutoConfiguration {
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);
     // performing a get consumes the one time token
-    SecretsManager.getSecrets(options, List.of(UUID.randomUUID().toString()));
+    SecretsManager.getSecrets(options, List.of("AAAAAAAAAAAAAAAAAAAAAA"));
 
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
