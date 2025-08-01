@@ -3,8 +3,16 @@ package com.keepersecurity.spring.ksm.autoconfig;
 import java.security.KeyStore;
 import java.security.Provider;
 
+/**
+ * Utility methods for resolving keystore file defaults.
+ */
 public final class KsmKeystoreDefaults {
 
+  /**
+   * Determines the default keystore extension for the current JVM provider.
+   *
+   * @return the default file extension such as {@code p12} or {@code bcfks}
+   */
   public static String resolveDefaultExtension() {
       try {
           KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType()); // usually PKCS12
@@ -30,6 +38,12 @@ public final class KsmKeystoreDefaults {
       return "p12";
   }
 
+  /**
+   * Provides the default keystore filename using the extension returned by
+   * {@link #resolveDefaultExtension()}.
+   *
+   * @return the default keystore file name
+   */
   public static String getDefaultKeystoreFilename() {
       return "kms-config." + resolveDefaultExtension();
   }

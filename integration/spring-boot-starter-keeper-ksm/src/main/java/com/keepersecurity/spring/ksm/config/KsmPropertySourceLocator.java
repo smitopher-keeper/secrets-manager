@@ -30,6 +30,12 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
   private final KeeperKsmProperties properties;
   private final KsmRecordResolver resolver;
 
+  /**
+   * Creates a locator that reads Keeper records using the provided options.
+   *
+   * @param options the secrets manager options
+   * @param properties bound configuration properties
+   */
   public KsmPropertySourceLocator(SecretsManagerOptions options, KeeperKsmProperties properties) {
     this.options = options;
     this.properties = properties;
@@ -37,6 +43,14 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
   }
 
   @Override
+  /**
+   * Loads Keeper records defined in {@link KeeperKsmProperties#getRecords()} and
+   * exposes them as a {@link PropertySource}.
+   *
+   * @param environment the current Spring environment
+   * @return a property source containing record fields or {@code null} if no
+   *     records are configured
+   */
   public PropertySource<?> locate(Environment environment) {
     List<String> specs = properties.getRecords();
     if (specs == null || specs.isEmpty()) {
