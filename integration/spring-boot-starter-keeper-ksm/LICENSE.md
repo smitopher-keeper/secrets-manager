@@ -1,22 +1,21 @@
-Copyright © 2025 Keeper Security, Inc. All rights reserved.
+MIT License
 
-This software and associated documentation files (the "Software") are the proprietary property of Keeper Security, Inc. (the "Company").
+Copyright (c) 2025 Keeper Security
 
-Permission is hereby granted to authorized users only to use, copy, modify, merge, or distribute the Software, in whole or in part, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. **No Redistribution**: Unauthorized redistribution of the Software, in whole or in part, in any form or by any means, is strictly prohibited.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. **No Derivative Works**: You may not modify, reverse engineer, decompile, or create derivative works of the Software without explicit written permission from the Company.
-
-3. **Use Restriction**: The Software may only be used for internal business purposes by authorized licensees or partners of the Company.
-
-4. **No Warranty**: The Software is provided “as is”, without warranty of any kind, express or implied, including but not limited to warranties of merchantability or fitness for a particular purpose.
-
-5. **Limitation of Liability**: In no event shall the Company be liable for any damages arising from the use or inability to use the Software.
-
-For license terms, commercial use, or partnership inquiries, contact:  
-**Keeper Security, Inc.**  
-Email: support@keepersecurity.com  
-Website: https://www.keepersecurity.com
-
-Unauthorized use is strictly prohibited.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
