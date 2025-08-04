@@ -1,5 +1,9 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Supported configuration providers for Keeper Secrets Manager.
  *
@@ -27,6 +31,18 @@ public enum KsmConfigProvider {
      */
     /** Configuration stored in an HSM using the SunPKCS11 provider. */
     SUN_PKCS11("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
+    /** Configuration stored in SoftHSM2 for local development. */
+    SOFTHSM2("pkcs11://slot/0/token/softhsm2", SecurityLevel.IL5, SecurityProfile.NONE) {
+        @Override
+        public PKCS11Config createPkcs11Config(KeeperKsmProperties properties) {
+            if (properties != null && properties.isEnforceIl5()) {
+                throw new IllegalStateException(
+                    "SoftHSM2 is not permitted when IL5 enforcement is enabled.");
+            }
+            Path library = detectSoftHsm2Library();
+            return new PKCS11Config(library.toString());
+        }
+    },
     /** Configuration stored in AWS Secrets Manager. */
     AWS("aws-secrets://region/resource", SecurityLevel.IL5, SecurityProfile.FEDRAMP_HIGH),
     /** Configuration stored in Azure Key Vault. */
@@ -135,7 +151,7 @@ public enum KsmConfigProvider {
      * @return {@code true} if the provider uses an HSM backend
      */
     public boolean isHsm() {
-        return this == HSM || this == SUN_PKCS11
+        return this == HSM || this == SUN_PKCS11 || this == SOFTHSM2
             || this == AWS_HSM || this == AZURE_HSM || this == FORTANIX;
     }
 
@@ -146,6 +162,30 @@ public enum KsmConfigProvider {
      */
     public boolean isFedRAMPHigh() {
         return commercialProfile == SecurityProfile.FEDRAMP_HIGH;
+    }
+
+    /**
+     * Creates a PKCS#11 configuration for providers that require one.
+     *
+     * @param properties the resolved properties
+     * @return configuration describing the native library
+     */
+    public PKCS11Config createPkcs11Config(KeeperKsmProperties properties) {
+        throw new UnsupportedOperationException(
+            "PKCS11Config not supported for " + this);
+    }
+
+    private static Path detectSoftHsm2Library() {
+        Path macOs = Paths.get("/opt/homebrew/lib/softhsm/libsofthsm2.so");
+        if (Files.isReadable(macOs)) {
+            return macOs;
+        }
+        Path linux = Paths.get("/usr/local/lib/softhsm/libsofthsm2.so");
+        if (Files.isReadable(linux)) {
+            return linux;
+        }
+        throw new IllegalStateException(
+            "SoftHSM2 PKCS#11 library not found or unreadable at /opt/homebrew/lib/softhsm/libsofthsm2.so or /usr/local/lib/softhsm/libsofthsm2.so");
     }
 }
 

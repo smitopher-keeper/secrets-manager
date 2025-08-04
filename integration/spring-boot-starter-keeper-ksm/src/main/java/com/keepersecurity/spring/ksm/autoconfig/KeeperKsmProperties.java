@@ -52,7 +52,7 @@ public class KeeperKsmProperties implements InitializingBean{
    * Type of secret container to use. Supported values correspond to the
    * constants in {@link KsmConfigProvider} such as
    * {@code default}, {@code named}, {@code bc_fips},
-   * {@code oracle_fips}, {@code sun_pkcs11}, {@code aws},
+   * {@code oracle_fips}, {@code sun_pkcs11}, {@code softhsm2}, {@code aws},
    * {@code azure}, {@code aws_hsm}, {@code azure_hsm},
    * {@code google}, {@code fortanix}, {@code raw}, {@code hsm}.
    * For raw JSON configuration, use {@link KsmConfigProvider#RAW}.
