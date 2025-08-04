@@ -17,4 +17,13 @@ class Il5EnforcementTest {
                         "keeper.ksm.enforce-il5=true")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
+
+    @Test
+    void softHsm2NotAllowedWithIl5Enforcement() {
+        contextRunner
+                .withPropertyValues(
+                        "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.hsm-provider=softHsm2")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
 }

@@ -80,6 +80,15 @@ public class KeeperKsmAutoConfiguration {
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
   SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties) {
+    if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
+      if (properties.isEnforceIl5()) {
+        String message = "SoftHSM2 is not IL-5 compliant";
+        LOGGER.atError().log(message);
+        throw new IllegalStateException(message);
+      }
+      PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
+      properties.setPkcs11Library(pkcs11.getLibraryPath());
+    }
     Optional<Path> tokenPath = Optional.ofNullable(properties.getOneTimeToken());
     tokenPath.ifPresent(path -> {
       String token;
