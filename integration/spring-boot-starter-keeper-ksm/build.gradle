@@ -68,6 +68,17 @@ jar {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "Keeper Central"
+            credentials {
+                username = System.getenv("GH_REPO_USER")
+                password = System.getenv("GH_REPO_TOKEN")
+            }
+            url = uri("https://maven.pkg.github.com/Keeper-Security/keeper-central")
+        }
+    }
+
     publications {
         mavenJava(MavenPublication) {
             from components.java
