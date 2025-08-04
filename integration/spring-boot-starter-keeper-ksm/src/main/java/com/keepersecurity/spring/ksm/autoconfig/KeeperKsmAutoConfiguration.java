@@ -131,8 +131,9 @@ public class KeeperKsmAutoConfiguration {
       LOGGER.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
     }
 
-    LOGGER.atInfo().log("One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.");
-    System.exit(0);
+    String message = "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
+    LOGGER.atInfo().log(message);
+    throw new OneTimeTokenConsumedException(message);
   }
 
   private void saveRawConfigToFile(ObjectNode config, KeeperKsmProperties props) {
