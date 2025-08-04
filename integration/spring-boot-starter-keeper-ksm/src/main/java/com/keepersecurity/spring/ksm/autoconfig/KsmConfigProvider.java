@@ -9,7 +9,12 @@ import java.nio.file.Paths;
  *
  * <p>Each constant represents a mechanism for storing the KSM configuration
  * along with the default location for that configuration, the Impact Level
- * readiness and the commercial compliance profile.
+ * readiness and the commercial compliance profile.</p>
+ *
+ * <p>The {@link #SOFTHSM2} provider uses SoftHSM2 to emulate an IL5 hardware
+ * security module for local development. When the {@code enforceIl5} property is
+ * enabled the emulator is rejected and an {@link IllegalStateException} is
+ * thrown early in application start-up.</p>
  */
 public enum KsmConfigProvider {
     /** Default keystore using the platform provider. */
@@ -31,8 +36,20 @@ public enum KsmConfigProvider {
      */
     /** Configuration stored in an HSM using the SunPKCS11 provider. */
     SUN_PKCS11("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
-    /** Configuration stored in SoftHSM2 for local development. */
+    /**
+     * Configuration stored in SoftHSM2 for local development.
+     * SoftHSM2 provides an emulator for IL5-capable HSMs but is not IL5
+     * compliant. If {@code enforceIl5} is enabled this provider fails fast.
+     */
     SOFTHSM2("pkcs11://slot/0/token/softhsm2", SecurityLevel.IL5, SecurityProfile.NONE) {
+        /**
+         * Creates a {@link PKCS11Config} pointing to the SoftHSM2 library.
+         *
+         * @param properties resolved Keeper configuration properties
+         * @return PKCS#11 configuration referencing SoftHSM2
+         * @throws IllegalStateException if IL5 enforcement is enabled or the
+         *     SoftHSM2 library cannot be located
+         */
         @Override
         public PKCS11Config createPkcs11Config(KeeperKsmProperties properties) {
             if (properties != null && properties.isEnforceIl5()) {
@@ -169,12 +186,22 @@ public enum KsmConfigProvider {
      *
      * @param properties the resolved properties
      * @return configuration describing the native library
+     * @throws UnsupportedOperationException if the provider does not support
+     *     PKCS#11 configuration
      */
     public PKCS11Config createPkcs11Config(KeeperKsmProperties properties) {
         throw new UnsupportedOperationException(
             "PKCS11Config not supported for " + this);
     }
 
+    /**
+     * Attempts to locate the SoftHSM2 PKCS#11 library using common installation
+     * paths.
+     *
+     * @return path to the SoftHSM2 native library
+     * @throws IllegalStateException if the library cannot be found or is
+     *     unreadable
+     */
     private static Path detectSoftHsm2Library() {
         Path macOs = Paths.get("/opt/homebrew/lib/softhsm/libsofthsm2.so");
         if (Files.isReadable(macOs)) {
