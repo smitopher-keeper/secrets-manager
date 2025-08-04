@@ -9,10 +9,13 @@ import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 import com.keepersecurity.spring.ksm.autoconfig.KeeperKsmProperties;
 import com.keepersecurity.spring.ksm.config.KsmRecordResolver;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.Environment;
@@ -25,6 +28,8 @@ import org.springframework.core.env.PropertySource;
  */
 @ConditionalOnClass(SecretsManager.class)
 public class KsmPropertySourceLocator implements PropertySourceLocator {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KsmPropertySourceLocator.class);
 
   private final SecretsManagerOptions options;
   private final KeeperKsmProperties properties;
@@ -107,7 +112,8 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
         return list.stream().map(Object::toString).collect(Collectors.joining(","));
       }
       return val != null ? val.toString() : null;
-    } catch (Exception e) {
+    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+      LOGGER.warn("Failed to extract value from field {}", field, e);
       return null;
     }
   }
