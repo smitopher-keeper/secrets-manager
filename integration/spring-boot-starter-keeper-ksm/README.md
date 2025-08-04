@@ -23,7 +23,7 @@ You can configure the KSM credentials via Spring Boot properties (e.g., in your 
 keeper.ksm.one-time-token = path/to/one-time-token.txt
 keeper.ksm.secret-path = path/to/ksm-config.json
 ```
-On the first run, the starter reads the token from the file, redeems it to retrieve your KSM configuration and save it to the specified JSON file. The token file is deleted **after** the configuration is generated and the application then shuts down. **Note:** one-time tokens can only be used once; restart the application after removing the `keeper.ksm.one-time-token` property from your configuration.
+On the first run, the starter reads the token from the file, redeems it to retrieve your KSM configuration and save it to the specified JSON file. The token file is deleted **after** the configuration is generated and the starter throws a `OneTimeTokenConsumedException` to stop the application. **Note:** one-time tokens can only be used once; restart the application after removing the `keeper.ksm.one-time-token` property from your configuration.
 
 - **Option 2: Existing Config File** – If you already have a Keeper config JSON (e.g., from a previous initialization), you can just specify:
   ```properties
