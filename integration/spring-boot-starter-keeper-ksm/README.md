@@ -34,6 +34,7 @@ On the first run, the starter reads the token from the file, redeems it to retri
 - **Secret Container Options** – The config can be stored in different container types. By default a local file is used. Set the container type and optional credentials if needed:
   ```properties
   keeper.ksm.container-type = pkcs11
+  keeper.ksm.hsm-provider = softHsm2
   keeper.ksm.pkcs11-library = /path/to/lib.so
   keeper.ksm.secret-user = changeme
   keeper.ksm.secret-password = changeme

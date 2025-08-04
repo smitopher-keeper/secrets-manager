@@ -76,6 +76,16 @@ public class KeeperKsmProperties implements InitializingBean{
   private String pkcs11Library;
 
   /**
+   * Known HSM provider to assist with PKCS#11 configuration. Optional.
+   * <p>
+   * When set to {@link HsmProvider#SOFT_HSM2}, the starter will attempt to
+   * auto-detect the SoftHSM2 library path. {@link HsmProvider#SUN_PKCS11}
+   * indicates that the JDK's built in SunPKCS11 provider is used.
+   * </p>
+   */
+  private HsmProvider hsmProvider;
+
+  /**
    * When true, the application will fail to start unless the IL-5 certified provider is
    * available. This can be used to enforce IL-5 compliance.
    */
@@ -218,6 +228,24 @@ public class KeeperKsmProperties implements InitializingBean{
   }
 
   /**
+   * Returns the configured HSM provider, if any.
+   *
+   * @return the selected {@link HsmProvider} or {@code null}
+   */
+  public HsmProvider getHsmProvider() {
+    return hsmProvider;
+  }
+
+  /**
+   * Sets the HSM provider to use for PKCS#11 operations.
+   *
+   * @param hsmProvider provider identifier
+   */
+  public void setHsmProvider(HsmProvider hsmProvider) {
+    this.hsmProvider = hsmProvider;
+  }
+
+  /**
    * Whether the application should enforce IL‑5 readiness.
    *
    * @return {@code true} if IL‑5 enforcement is enabled
@@ -261,6 +289,9 @@ public class KeeperKsmProperties implements InitializingBean{
   public void afterPropertiesSet() throws Exception {
     if (enforceIl5 && !providerType.isIl5Ready()) {
       notIl5Compliant(providerType);
+    }
+    if (enforceIl5 && hsmProvider == HsmProvider.SOFT_HSM2) {
+      notIl5Compliant(KsmConfigProvider.SOFTHSM2);
     }
     if (secretPath == null) {
       secretPath = Paths.get(providerType.getDefaultLocation());
