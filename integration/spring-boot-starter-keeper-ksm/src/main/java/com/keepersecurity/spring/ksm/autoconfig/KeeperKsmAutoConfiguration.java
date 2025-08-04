@@ -44,6 +44,11 @@ import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
  * This configuration class registers a {@link SecretsManagerOptions} bean based on
  * {@link KeeperKsmProperties}. It supports initialisation from a one-time token
  * as well as loading an existing JSON configuration file.
+ * The {@code keeper.ksm.hsm-provider} property chooses the backing HSM. When
+ * set to {@code SOFT_HSM2} the auto-configuration locates the SoftHSM2
+ * library and wires it into the {@link SecretsManager} SDK. If IL5 enforcement
+ * ({@code keeper.ksm.enforce-il5}) is enabled while using the emulator the
+ * application fails fast.
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
@@ -73,9 +78,14 @@ public class KeeperKsmAutoConfiguration {
    * {@link KeeperKsmProperties}. If a one-time token is configured it will be
    * consumed to initialise the local configuration before the application exits.
    * Otherwise the existing configuration is loaded from the configured location.
+   * When the {@code hsm-provider} property is {@code SOFT_HSM2} the SoftHSM2
+   * library is auto-detected and wired to the SDK. If IL5 enforcement is enabled
+   * while using the emulator an {@link IllegalStateException} is thrown to fail
+   * fast.
    *
    * @param properties bound Keeper configuration properties
    * @return a fully configured {@link SecretsManagerOptions} instance
+   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
