@@ -48,8 +48,8 @@ class KsmPropertySourceLocatorTest {
             KsmPropertySourceLocator locator = new KsmPropertySourceLocator(options, props);
             PropertySource<?> ps = locator.locate(new MockEnvironment());
 
-            assertEquals("my-secret", ps.getProperty(recordUid + ".password"));
-            assertEquals("Test Record", ps.getProperty(recordUid + ".title"));
+            assertEquals("my-secret", ps.getProperty("keeper://" + recordUid + "/field/password"));
+            assertEquals("Test Record", ps.getProperty("keeper://" + recordUid + "/title"));
         }
     }
 }

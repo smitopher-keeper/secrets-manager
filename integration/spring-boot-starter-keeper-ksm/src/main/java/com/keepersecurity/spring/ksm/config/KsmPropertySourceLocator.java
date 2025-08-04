@@ -84,23 +84,24 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
   }
 
   private void flattenRecord(KeeperRecord record, Map<String, Object> flat) {
-    String prefix = record.getRecordUid();
-    flat.put(prefix + ".title", record.getData().getTitle());
-    flat.put(prefix + ".type", record.getData().getType());
+    String prefix = "keeper://" + record.getRecordUid();
+    flat.put(prefix + "/title", record.getData().getTitle());
+    flat.put(prefix + "/type", record.getData().getType());
     if (record.getData().getNotes() != null) {
-      flat.put(prefix + ".notes", record.getData().getNotes());
+      flat.put(prefix + "/notes", record.getData().getNotes());
     }
-    record.getData().getFields().forEach(f -> addField(prefix, f, flat));
+    record.getData().getFields().forEach(f -> addField(prefix, "field", f, flat));
     if (record.getData().getCustom() != null) {
-      record.getData().getCustom().forEach(f -> addField(prefix, f, flat));
+      record.getData().getCustom().forEach(f -> addField(prefix, "custom_field", f, flat));
     }
   }
 
-  private void addField(String prefix, KeeperRecordField field, Map<String, Object> flat) {
+  private void addField(
+      String prefix, String selector, KeeperRecordField field, Map<String, Object> flat) {
     String type = Notation.fieldType(field);
     String label = field.getLabel();
     String name = (label != null && !label.isBlank()) ? label : type;
-    String key = prefix + "." + name;
+    String key = prefix + "/" + selector + "/" + name;
     Object value = extractValue(field);
     flat.put(key, value);
   }
