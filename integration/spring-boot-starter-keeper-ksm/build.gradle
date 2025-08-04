@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
         toolchain {
-                languageVersion = JavaLanguageVersion.of(24)
+                languageVersion = JavaLanguageVersion.of(21)
         }
     withSourcesJar()
     withJavadocJar()
@@ -70,7 +70,7 @@ jar {
 publishing {
     repositories {
         maven {
-            name = "Keeper Central"
+            name = "keeper-central"
             credentials {
                 username = System.getenv("GH_REPO_USER")
                 password = System.getenv("GH_REPO_TOKEN")
@@ -83,8 +83,8 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             groupId = 'com.keepersecurity'
-            artifactId = 'spring-boot-starter-ksm'
-            version = '0.0.1-SNAPSHOT'
+            artifactId = 'spring-boot-starter-keeper-ksm'
+            version = project.version
 
             pom {
                 name = 'Spring Boot Starter for Keeper Security'
