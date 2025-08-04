@@ -30,8 +30,8 @@ public class KeeperKsmProperties implements InitializingBean{
    * be a file path or a location inside a secrets service.
    * <p>
    * If a one-time token is provided and this path is set, the token will be redeemed and the config
-   * stored at this location. If not set, {@link KsmConfigProvider#FILE} is used and a token is provided, a default file "ksm-config.json"
-   * will be used in the secretPath property.
+   * stored at this location. If not set and {@link KsmConfigProvider#RAW RAW} is used with a token,
+   * a default file {@code "ksm-config.json"} will be used for the secretPath property.
    */
   private Path secretPath;
   /**
@@ -49,11 +49,14 @@ public class KeeperKsmProperties implements InitializingBean{
   private Class<? extends Provider> providerClass;
 
   /**
-   * Type of secret container to use. Supported values are
+   * Type of secret container to use. Supported values correspond to the
+   * constants in {@link KsmConfigProvider} such as
    * {@code default}, {@code named}, {@code bc_fips},
    * {@code oracle_fips}, {@code sun_pkcs11}, {@code aws},
    * {@code azure}, {@code aws_hsm}, {@code azure_hsm},
-   * Defaults to {@code default}.
+   * {@code google}, {@code fortanix}, {@code raw}, {@code hsm}.
+   * For raw JSON configuration, use {@link KsmConfigProvider#RAW}.
+   * Defaults to {@link KsmConfigProvider#DEFAULT}.
    */
   private KsmConfigProvider providerType = KsmConfigProvider.DEFAULT;
 
