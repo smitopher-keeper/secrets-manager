@@ -21,10 +21,10 @@ This example demonstrates fetching KSM secrets using a Thymeleaf frontend.
 Edit `src/main/resources/application.yaml` to enable config loading:
 
 ```yaml
-ksm:
-  config:
-    path: ~/.keeper/ksm-config.json
-    useRawJson: true
+keeper:
+  ksm:
+    container-type: raw
+    secret-path: ~/.keeper/ksm-config.json
 ```
 
 ### Start the example
