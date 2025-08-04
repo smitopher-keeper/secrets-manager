@@ -9,13 +9,13 @@ package com.keepersecurity.spring.ksm.autoconfig;
  */
 public enum KsmConfigProvider {
     /** Default keystore using the platform provider. */
-    DEFAULT("kms-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
+    DEFAULT("ksm-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
     /** A named keystore entry using the platform provider. */
-    NAMED("kms-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
+    NAMED("ksm-config.p12", SecurityLevel.IL2, SecurityProfile.NONE),
     /** Keystore using the BouncyCastle FIPS provider. */
-    BC_FIPS("kms-config.bcfks", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
+    BC_FIPS("ksm-config.bcfks", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     /** Keystore using the Oracle FIPS provider. */
-    ORACLE_FIPS("kms-config.p12", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
+    ORACLE_FIPS("ksm-config.p12", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     /**
      * Uses the JVM's built-in SunPKCS11 provider.
      * <p>
@@ -40,7 +40,7 @@ public enum KsmConfigProvider {
     /** Configuration stored in a Fortanix DSM. */
     FORTANIX("fortanix://token", SecurityLevel.IL5, SecurityProfile.FIPS_140_2),
     /** Raw JSON configuration on the filesystem. */
-    RAW("kms-config.json", SecurityLevel.IL2, SecurityProfile.NONE),
+    RAW("ksm-config.json", SecurityLevel.IL2, SecurityProfile.NONE),
     /** Generic PKCS#11 HSM configuration. */
     HSM("pkcs11://slot/0/token/kms", SecurityLevel.IL5, SecurityProfile.FIPS_140_2);
 

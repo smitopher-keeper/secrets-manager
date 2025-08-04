@@ -44,9 +44,9 @@ public final class KsmKeystoreDefaults {
    * Provides the default keystore filename using the extension returned by
    * {@link #resolveDefaultExtension()}.
    *
-   * @return the default keystore file name
+  * @return the default keystore file name
    */
   public static String getDefaultKeystoreFilename() {
-      return "kms-config." + resolveDefaultExtension();
+      return "ksm-config." + resolveDefaultExtension();
   }
 }

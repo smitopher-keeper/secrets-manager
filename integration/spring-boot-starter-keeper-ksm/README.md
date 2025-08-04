@@ -46,10 +46,10 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 
 | Value | Default location | Security level | Compliance profile | Notes |
 |-------|-----------------|----------------|--------------------|-------|
-| `default` | `kms-config.p12` | IL-2 | None | default Java keystore |
-| `named`   | `kms-config.p12` | IL-2 | None | named keystore entry |
-| `bc_fips` | `kms-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
-| `oracle_fips` | `kms-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider |
+| `default` | `ksm-config.p12` | IL-2 | None | default Java keystore |
+| `named`   | `ksm-config.p12` | IL-2 | None | named keystore entry |
+| `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
+| `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider |
 | `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider |
 | `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | *not implemented* |
 | `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | *not implemented* |
@@ -57,7 +57,7 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 | `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | *not implemented* |
 | `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | *not implemented* |
 
-| `raw`     | `kms-config.json` | IL-2 | None | plain JSON file |
+| `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file |
 | `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
 | `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM |
 
