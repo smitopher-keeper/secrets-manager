@@ -148,6 +148,32 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
+  private String resolveKeystoreType(KsmConfigProvider providerType) {
+    return switch (providerType) {
+      case BC_FIPS -> "BCFKS";
+      case ORACLE_FIPS -> "PKCS12";
+      case DEFAULT, NAMED -> {
+        String ext = KsmKeystoreDefaults.resolveDefaultExtension().toLowerCase();
+        yield switch (ext) {
+          case "p12", "pfx" -> "PKCS12";
+          case "bcfks" -> "BCFKS";
+          case "bks" -> "BKS";
+          case "jks" -> "JKS";
+          default -> {
+            String message = "Unsupported keystore extension: " + ext;
+            LOGGER.atWarn().log(message);
+            throw new IllegalArgumentException(message);
+          }
+        };
+      }
+      default -> {
+        String message = "Unsupported provider for keystore persistence: " + providerType;
+        LOGGER.atWarn().log(message);
+        throw new IllegalArgumentException(message);
+      }
+    };
+  }
+
   private void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
     try {
       Path keystorePath = props.getSecretPath();
@@ -160,7 +186,8 @@ public class KeeperKsmAutoConfiguration {
       }
 
       char[] password = props.getSecretPassword().toCharArray();
-      KeyStore ks = KeyStore.getInstance("PKCS12");
+      String keystoreType = resolveKeystoreType(props.getProviderType());
+      KeyStore ks = KeyStore.getInstance(keystoreType);
       if (Files.exists(keystorePath)) {
         try (InputStream in = Files.newInputStream(keystorePath)) {
           ks.load(in, password);
