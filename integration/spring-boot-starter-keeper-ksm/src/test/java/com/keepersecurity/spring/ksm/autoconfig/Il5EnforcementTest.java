@@ -1,5 +1,7 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
+import java.security.Provider;
+import java.security.Security;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -30,11 +32,22 @@ class Il5EnforcementTest {
 
     @Test
     void awsCloudHsmAllowedWithIl5Enforcement() {
-        contextRunner
-                .withPropertyValues(
-                        "keeper.ksm.enforce-il5=true",
-                        "keeper.ksm.container-type=sun_pkcs11",
-                        "keeper.ksm.hsm-provider=awsCloudHsm")
-                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
+        try {
+            Security.addProvider(new TestFipsProvider());
+            contextRunner
+                    .withPropertyValues(
+                            "keeper.ksm.enforce-il5=true",
+                            "keeper.ksm.container-type=sun_pkcs11",
+                            "keeper.ksm.hsm-provider=awsCloudHsm")
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
+        } finally {
+            Security.removeProvider("BCFIPS");
+        }
+    }
+
+    static class TestFipsProvider extends Provider {
+        TestFipsProvider() {
+            super("BCFIPS", 1.0, "test fips provider");
+        }
     }
 }
