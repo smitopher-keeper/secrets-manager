@@ -10,11 +10,11 @@ class Il5EnforcementTest {
             .withPropertyValues("keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json");
 
     @Test
-    void failsWithoutFipsProviderWhenIl5Enforced() {
+    void failsWithoutHsmProviderWhenIl5Enforced() {
         contextRunner
                 .withPropertyValues(
-                        "keeper.ksm.provider=org.bouncycastle.jce.provider.BouncyCastleProvider",
-                        "keeper.ksm.enforce-il5=true")
+                        "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.container-type=sun_pkcs11")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
 
@@ -23,7 +23,18 @@ class Il5EnforcementTest {
         contextRunner
                 .withPropertyValues(
                         "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.container-type=sun_pkcs11",
                         "keeper.ksm.hsm-provider=softHsm2")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void awsCloudHsmAllowedWithIl5Enforcement() {
+        contextRunner
+                .withPropertyValues(
+                        "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.container-type=sun_pkcs11",
+                        "keeper.ksm.hsm-provider=awsCloudHsm")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
     }
 }

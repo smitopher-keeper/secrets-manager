@@ -287,14 +287,22 @@ public class KeeperKsmProperties implements InitializingBean{
    * where necessary.
    */
   public void afterPropertiesSet() throws Exception {
-    if (enforceIl5 && !providerType.isIl5Ready()) {
-      notIl5Compliant(providerType);
-    }
-    if (enforceIl5 && hsmProvider == HsmProvider.SOFT_HSM2) {
-      notIl5Compliant(KsmConfigProvider.SOFTHSM2);
+    if (enforceIl5) {
+      validateHsmProvider();
+      if (!providerType.isIl5Ready()) {
+        notIl5Compliant(providerType);
+      }
     }
     if (secretPath == null) {
       secretPath = Paths.get(providerType.getDefaultLocation());
+    }
+  }
+
+  private void validateHsmProvider() {
+    if (hsmProvider == null || !hsmProvider.isFipsApproved()) {
+      String message = "Configured HSM provider is not FIPS-approved. IL5 enforcement requires a FIPS-compliant PKCS#11 provider.";
+      LOGGER.atError().log(message);
+      throw new IllegalStateException(message);
     }
   }
 
