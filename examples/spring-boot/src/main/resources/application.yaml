@@ -1,4 +1,4 @@
-ksm:
-  config:
-    path: ~/.keeper/ksm-config.json
-    useRawJson: true
+keeper:
+  ksm:
+    container-type: raw
+    secret-path: ~/.keeper/ksm-config.json
