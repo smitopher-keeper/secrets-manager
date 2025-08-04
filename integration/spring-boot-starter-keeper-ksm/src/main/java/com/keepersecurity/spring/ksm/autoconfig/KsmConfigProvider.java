@@ -207,12 +207,16 @@ public enum KsmConfigProvider {
         if (Files.isReadable(macOs)) {
             return macOs;
         }
-        Path linux = Paths.get("/usr/local/lib/softhsm/libsofthsm2.so");
-        if (Files.isReadable(linux)) {
-            return linux;
+        Path linuxUsr = Paths.get("/usr/lib/softhsm/libsofthsm2.so");
+        if (Files.isReadable(linuxUsr)) {
+            return linuxUsr;
+        }
+        Path linuxUsrLocal = Paths.get("/usr/local/lib/softhsm/libsofthsm2.so");
+        if (Files.isReadable(linuxUsrLocal)) {
+            return linuxUsrLocal;
         }
         throw new IllegalStateException(
-            "SoftHSM2 PKCS#11 library not found or unreadable at /opt/homebrew/lib/softhsm/libsofthsm2.so or /usr/local/lib/softhsm/libsofthsm2.so");
+            "SoftHSM2 PKCS#11 library not found or unreadable at /opt/homebrew/lib/softhsm/libsofthsm2.so, /usr/lib/softhsm/libsofthsm2.so, or /usr/local/lib/softhsm/libsofthsm2.so");
     }
 }
 
