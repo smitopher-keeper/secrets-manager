@@ -3,27 +3,45 @@
 This sample demonstrates how to use the `spring-boot-starter-keeper-ksm` starter
 in a minimal Spring Boot application.
 
-## Prerequisites
+## Keeper Spring Boot Example
+
+This example demonstrates fetching KSM secrets using a Thymeleaf frontend.
+
+### Prerequisites
 
 - Java 21
 - Gradle
-- A Keeper Secrets Manager configuration file generated from a one-time token.
+- You must have a valid Keeper KSM config file stored at:
+  `~/.keeper/ksm-config.json`
+  - You can generate one using:
+    `keeper shell ksm profile init --app-owner`
+  - Or follow the Keeper KSM docs:
+    https://docs.keeper.io/secrets-manager/
 
-## Build and Run
+Edit `src/main/resources/application.yaml` to enable config loading:
 
-To run the application:
+```yaml
+ksm:
+  config:
+    path: ~/.keeper/ksm-config.json
+    useRawJson: true
+```
+
+### Start the example
+
+From `/examples/spring-boot`, run:
 
 ```bash
 ./gradlew bootRun
 ```
 
-The `application.yaml` file configures where the starter should look for your
-Keeper Secrets Manager configuration and which records to load:
+Then open <http://localhost:8080> in your browser.
 
-```yaml
-keeper:
-  ksm:
-    secret-path: path/to/ksm-config.json
-    records:
-      - RECORD_UID
-```
+🔎 **Use the UI**
+
+Paste a Keeper Notation string (e.g. `keeper://ABC123/field/password`)
+
+Click "Fetch Secret"
+
+The fetched value will appear, along with a list of Spring configuration
+properties populated from KSM.

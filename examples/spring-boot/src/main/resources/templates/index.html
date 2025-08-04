@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Keeper Secret Fetcher</title>
+</head>
+<body>
+<h1>Keeper Secret Fetcher</h1>
+<form th:action="@{/}" method="post">
+    <input type="text" name="notation" placeholder="keeper://UID/field/password" />
+    <button type="submit">Fetch Secret</button>
+</form>
+<div>
+    <h2>Secret</h2>
+    <p th:text="${secret}"></p>
+</div>
+<div>
+    <h2>Configuration</h2>
+    <ul>
+        <li th:each="entry : ${#maps.entries(configMap)}">
+            <span th:text="${entry.key}"></span>: <span th:text="${entry.value}"></span>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

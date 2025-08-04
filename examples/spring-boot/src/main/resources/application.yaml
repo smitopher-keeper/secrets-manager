@@ -1,6 +1,4 @@
-keeper:
-  ksm:
-    secret-path: path/to/ksm-config.json
-    # List of record UIDs to load as configuration properties
-    records:
-      - RECORD_UID
+ksm:
+  config:
+    path: ~/.keeper/ksm-config.json
+    useRawJson: true
