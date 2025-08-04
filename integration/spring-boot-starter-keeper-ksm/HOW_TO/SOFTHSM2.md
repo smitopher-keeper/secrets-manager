@@ -20,9 +20,9 @@ softhsm2-util --init-token --slot 0 --label ksm-token
 
 ## Configure the provider
 1. Ensure the `SOFTHSM2_CONF` environment variable points to your configuration file if you are not using the default location.
-2. Configure the Spring Boot starter to use the PKCS#11 library:
+2. Configure the Spring Boot starter to use the PKCS#11 library. Depending on your installation, the library may reside in `/usr/lib/softhsm` or `/usr/local/lib/softhsm`:
    ```yaml
-   keeper.ksm.pkcs11.library: /usr/lib/softhsm/libsofthsm2.so
+   keeper.ksm.pkcs11.library: /usr/lib/softhsm/libsofthsm2.so # or /usr/local/lib/softhsm/libsofthsm2.so
    ```
 3. Start the application and enter the PIN when prompted.
 
