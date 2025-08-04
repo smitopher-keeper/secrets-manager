@@ -128,6 +128,34 @@ For detailed steps see [SUN_PKCS11.md](SUN_PKCS11.md).
 
 If neither property is set, the auto-configuration will not initialize and will throw an error to remind you to configure KSM credentials.
 
+### Using SoftHSM2 for IL5 Emulation
+
+SoftHSM2 can emulate an IL5 HSM for local development and testing.
+
+- **Installation**
+
+  ```bash
+  brew install softhsm     # macOS
+  sudo apt install softhsm2 # Debian/Ubuntu
+  ```
+
+- **Configuration**
+
+  ```yaml
+  ksm:
+    config:
+      hsm-provider: softhsm2
+      enforce-il5: false
+  ```
+
+  Setting `enforce-il5: true` forbids SoftHSM2 and causes the starter to fail fast.
+
+- **Troubleshooting**
+
+  Errors about missing PKCS#11 libraries usually mean the `libsofthsm2.so` module is not installed or not on the search path. Install the library and ensure the `SOFTHSM2_MODULE` environment variable points to the correct location.
+
+For more details see the [Keeper HSM documentation](https://docs.keeper.io/secrets-manager/secrets-manager/hsm-integration).
+
 ### Optional Cloud and HSM Providers
 
 To keep the starter lightweight, SDKs for providers like AWS Secrets Manager, Azure Key Vault, and Google Secret Manager are not included. Add the corresponding dependency to your application's build file to enable a provider. For example:
