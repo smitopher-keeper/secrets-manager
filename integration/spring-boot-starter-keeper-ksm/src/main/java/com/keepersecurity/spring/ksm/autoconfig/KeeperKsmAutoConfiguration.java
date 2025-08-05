@@ -59,6 +59,15 @@ public class KeeperKsmAutoConfiguration {
   private static final List<String> CONFIG_KEYS;
   private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmAutoConfiguration.class);
 
+  /**
+   * UID of a non-existent record used solely to trigger one-time token
+   * consumption. The Keeper SDK currently consumes a token on the first
+   * record retrieval. Requesting this dummy record ensures the token is
+   * consumed without pulling any real data. Replace this once the SDK exposes
+   * a dedicated token consumption API.
+   */
+  private static final String DUMMY_RECORD_UID = "AAAAAAAAAAAAAAAAAAAAAA";
+
   static {
     CONFIG_KEYS = List.of(KEY_HOSTNAME,
         KEY_CLIENT_ID,
@@ -84,8 +93,15 @@ public class KeeperKsmAutoConfiguration {
    * while using the emulator an {@link IllegalStateException} is thrown to fail
    * fast.
    *
+   * <p>The {@code ksm.cache.enabled} property controls whether the Keeper SDK
+   * caches secrets in memory. Caching is enabled by default to improve
+   * performance for repeated secret access. Setting the property to
+   * {@code false} disables caching and forces the SDK to fetch fresh data from
+   * Keeper Secrets Manager on every request.</p>
+   *
    * @param properties bound Keeper configuration properties
-   * @param environment Spring environment used for bootstrap checks
+   * @param environment Spring environment used for bootstrap checks and cache
+   *     configuration
    * @return a fully configured {@link SecretsManagerOptions} instance
    * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
    *     one-time token is provided while IL5 is enforced
@@ -130,7 +146,14 @@ public class KeeperKsmAutoConfiguration {
       consumeToken(token, path, properties);
     });
     KeyValueStorage storage = new InMemoryStorage(getKmsConfig(properties));
-    return new SecretsManagerOptions(storage);
+    SecretsManagerOptions options = new SecretsManagerOptions(storage);
+    boolean cacheEnabled = environment.getProperty("ksm.cache.enabled", Boolean.class, Boolean.TRUE);
+    try {
+      options.getClass().getMethod("setAllowCaching", boolean.class).invoke(options, cacheEnabled);
+    } catch (ReflectiveOperationException e) {
+      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
+    }
+    return options;
   }
 
   @Bean
@@ -152,8 +175,7 @@ public class KeeperKsmAutoConfiguration {
     InMemoryStorage inMemoryStorage = new InMemoryStorage();
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);
-    // performing a get consumes the one time token
-    SecretsManager.getSecrets(options, List.of("AAAAAAAAAAAAAAAAAAAAAA"));
+    consumeOneTimeToken(options);
 
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
@@ -164,6 +186,10 @@ public class KeeperKsmAutoConfiguration {
       case AWS -> AwsSaver.save(config, props);
       case AZURE -> AzureSaver.save(config, props);
       case GOOGLE -> GoogleSaver.save(config, props);
+      case AWS_HSM -> AwsHsmSaver.save(config, props);
+      case AZURE_HSM -> AzureHsmSaver.save(config, props);
+      case FORTANIX -> FortanixSaver.save(config, props);
+      case HSM -> HsmSaver.save(config, props);
       default -> throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
     }
 
@@ -178,6 +204,18 @@ public class KeeperKsmAutoConfiguration {
     throw new OneTimeTokenConsumedException(message);
   }
 
+  /**
+   * Consumes the one-time token by calling the Keeper SDK with a dummy record
+   * UID. This triggers token consumption without downloading any actual
+   * secrets. If the SDK adds a dedicated token-consumption method, this should
+   * be replaced.
+   */
+  private void consumeOneTimeToken(SecretsManagerOptions options) {
+    // Performing a get consumes the one-time token. Using a dummy UID avoids
+    // transferring any real secret data.
+    SecretsManager.getSecrets(options, List.of(DUMMY_RECORD_UID));
+  }
+
   private void saveRawConfigToFile(ObjectNode config, KeeperKsmProperties props) {
     Path parent = props.getSecretPath().getParent();
     try {
@@ -190,7 +228,7 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private String resolveKeystoreType(KsmConfigProvider providerType) {
+  private static String resolveKeystoreType(KsmConfigProvider providerType) {
     return switch (providerType) {
       case BC_FIPS -> "BCFKS";
       case ORACLE_FIPS -> "PKCS12";
@@ -208,6 +246,7 @@ public class KeeperKsmAutoConfiguration {
           }
         };
       }
+      case HSM, AWS_HSM, AZURE_HSM, FORTANIX -> "PKCS11";
       default -> {
         String message = "Unsupported provider for keystore persistence: " + providerType;
         LOGGER.atWarn().log(message);
@@ -216,7 +255,7 @@ public class KeeperKsmAutoConfiguration {
     };
   }
 
-  private void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
+  private static void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
     try {
       Path keystorePath = props.getSecretPath();
       Files.createDirectories(keystorePath.getParent());
@@ -326,6 +365,30 @@ public class KeeperKsmAutoConfiguration {
       } catch (Exception e) {
         throw new IllegalStateException("Failed to persist the KMS Config to Google Secret Manager", e);
       }
+    }
+  }
+
+  private static class HsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      saveConfigToKeystore(config, props);
+    }
+  }
+
+  private static class AwsHsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
+    }
+  }
+
+  private static class AzureHsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
+    }
+  }
+
+  private static class FortanixSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
     }
   }
 

@@ -27,6 +27,8 @@ On the first run, the starter reads the token from the file, redeems it to retri
 
 When `keeper.ksm.enforce-il5=true`, this one-time-token bootstrapping is blocked to maintain IL5 compliance. You may override this behavior by setting `bootstrap.check.mode=warn` to merely log a warning.
 
+IL5 enforcement also requires audit logging. Configure a logger named `com.keepersecurity` or `com.keepersecurity.ksm` at level `INFO` or higher and direct it to a secure sink such as a file appender. If no audit sink is detected the application fails to start by default. Override this behavior with `audit.check.mode=warn` to only log a warning.
+
 - **Option 2: Existing Config File** – If you already have a Keeper config JSON (e.g., from a previous initialization), you can just specify:
   ```properties
   keeper.ksm.secret-path = path/to/ksm-config.json
@@ -45,7 +47,7 @@ When `container-type` is `pkcs11`, this starter uses `Pkcs11ConfigStorage`. This
 
 ### Supported Container Types
 
-The `keeper.ksm.container-type` property accepts the following values.  Options marked *not implemented* are reserved for future releases.
+The `keeper.ksm.container-type` property accepts the following values.
 
 | Value | Default location | Security level | Compliance profile | Notes |
 |-------|-----------------|----------------|--------------------|-------|
@@ -54,17 +56,22 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 | `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
 | `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider |
 | `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider |
-| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | *not implemented* |
-| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | *not implemented* |
-| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | *not implemented* |
-| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | *not implemented* |
-| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | *not implemented* |
+| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | requires AWS SDK |
+| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | requires Azure SDK |
+| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via CloudHSM |
+| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via Azure HSM |
+| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | requires Google SDK |
 
 | `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file |
-| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
-| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM |
+| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | generic PKCS#11 HSM |
+| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM via PKCS#11 |
 
 **Caution:** The `raw` container stores secrets in clear text and should only be used for testing or other non-production environments.
+
+AWS CloudHSM, Azure Dedicated HSM, Fortanix DSM and the generic `hsm` provider
+persist the configuration using a PKCS#11-backed keystore. Ensure the
+appropriate vendor PKCS#11 library and security provider are available on the
+classpath when using these options.
 
 ### IL-5 Provider Summary
 
@@ -119,6 +126,19 @@ signaling that they meet IL-5 security requirements.
   ```
   Once the starter is on the classpath, the fields from these records become
   available using keys like `Ue8h6JyWUs7Iu6eY_mha-w.password`.
+
+### 🔁 Secret Caching
+
+By default, the starter enables Keeper’s in-memory caching to reduce redundant
+secret lookups. To disable caching:
+
+```yaml
+ksm:
+  cache:
+    enabled: false
+```
+
+Disabling caching may improve security but reduces performance.
 
 ### Sun PKCS#11 Requirements
 
