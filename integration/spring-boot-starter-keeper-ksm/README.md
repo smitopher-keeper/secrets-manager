@@ -47,7 +47,7 @@ When `container-type` is `pkcs11`, this starter uses `Pkcs11ConfigStorage`. This
 
 ### Supported Container Types
 
-The `keeper.ksm.container-type` property accepts the following values.  Options marked *not implemented* are reserved for future releases.
+The `keeper.ksm.container-type` property accepts the following values.
 
 | Value | Default location | Security level | Compliance profile | Notes |
 |-------|-----------------|----------------|--------------------|-------|
@@ -56,17 +56,22 @@ The `keeper.ksm.container-type` property accepts the following values.  Options 
 | `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
 | `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider |
 | `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider |
-| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | *not implemented* |
-| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | *not implemented* |
-| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | *not implemented* |
-| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | *not implemented* |
-| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | *not implemented* |
+| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | requires AWS SDK |
+| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | requires Azure SDK |
+| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via CloudHSM |
+| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via Azure HSM |
+| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | requires Google SDK |
 
 | `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file |
-| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | PKCS#11 HSM |
-| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM |
+| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | generic PKCS#11 HSM |
+| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM via PKCS#11 |
 
 **Caution:** The `raw` container stores secrets in clear text and should only be used for testing or other non-production environments.
+
+AWS CloudHSM, Azure Dedicated HSM, Fortanix DSM and the generic `hsm` provider
+persist the configuration using a PKCS#11-backed keystore. Ensure the
+appropriate vendor PKCS#11 library and security provider are available on the
+classpath when using these options.
 
 ### IL-5 Provider Summary
 
