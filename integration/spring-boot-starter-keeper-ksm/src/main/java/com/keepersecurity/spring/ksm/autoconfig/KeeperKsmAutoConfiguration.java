@@ -84,8 +84,15 @@ public class KeeperKsmAutoConfiguration {
    * while using the emulator an {@link IllegalStateException} is thrown to fail
    * fast.
    *
+   * <p>The {@code ksm.cache.enabled} property controls whether the Keeper SDK
+   * caches secrets in memory. Caching is enabled by default to improve
+   * performance for repeated secret access. Setting the property to
+   * {@code false} disables caching and forces the SDK to fetch fresh data from
+   * Keeper Secrets Manager on every request.</p>
+   *
    * @param properties bound Keeper configuration properties
-   * @param environment Spring environment used for bootstrap checks
+   * @param environment Spring environment used for bootstrap checks and cache
+   *     configuration
    * @return a fully configured {@link SecretsManagerOptions} instance
    * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
    *     one-time token is provided while IL5 is enforced
@@ -130,7 +137,14 @@ public class KeeperKsmAutoConfiguration {
       consumeToken(token, path, properties);
     });
     KeyValueStorage storage = new InMemoryStorage(getKmsConfig(properties));
-    return new SecretsManagerOptions(storage);
+    SecretsManagerOptions options = new SecretsManagerOptions(storage);
+    boolean cacheEnabled = environment.getProperty("ksm.cache.enabled", Boolean.class, Boolean.TRUE);
+    try {
+      options.getClass().getMethod("setAllowCaching", boolean.class).invoke(options, cacheEnabled);
+    } catch (ReflectiveOperationException e) {
+      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
+    }
+    return options;
   }
 
   @Bean
