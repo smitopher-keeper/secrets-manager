@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {
+      "name": "ksm.cache.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable Keeper's in-memory secret cache.",
+      "defaultValue": true
+    }
+  ]
+}
+

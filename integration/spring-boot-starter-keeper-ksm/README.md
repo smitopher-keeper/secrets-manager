@@ -122,6 +122,19 @@ signaling that they meet IL-5 security requirements.
   Once the starter is on the classpath, the fields from these records become
   available using keys like `Ue8h6JyWUs7Iu6eY_mha-w.password`.
 
+### 🔁 Secret Caching
+
+By default, the starter enables Keeper’s in-memory caching to reduce redundant
+secret lookups. To disable caching:
+
+```yaml
+ksm:
+  cache:
+    enabled: false
+```
+
+Disabling caching may improve security but reduces performance.
+
 ### Sun PKCS#11 Requirements
 
 Using the `SUN_PKCS11` provider requires the JDK's SunPKCS11 security provider
