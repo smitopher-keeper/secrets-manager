@@ -127,18 +127,30 @@ signaling that they meet IL-5 security requirements.
   Once the starter is on the classpath, the fields from these records become
   available using keys like `Ue8h6JyWUs7Iu6eY_mha-w.password`.
 
-### 🔁 Secret Caching
+### 💾 Persistent Secret Caching
 
-By default, the starter enables Keeper’s in-memory caching to reduce redundant
-secret lookups. To disable caching:
+This starter enables Keeper’s persistent cache by default to reduce repeated secret lookups.
+
+To disable all caching:
 
 ```yaml
-ksm:
-  cache:
-    enabled: false
+keeper:
+  ksm:
+    cache:
+      enabled: false
 ```
 
-Disabling caching may improve security but reduces performance.
+To keep in-memory caching but skip persistence:
+
+```yaml
+keeper:
+  ksm:
+    cache:
+      enabled: true
+      persist: false
+```
+
+You may also override the caching strategy by defining a custom ConfigStorage bean.
 
 ### Sun PKCS#11 Requirements
 

@@ -1,9 +1,15 @@
 {
   "properties": [
     {
-      "name": "ksm.cache.enabled",
+      "name": "keeper.ksm.cache.enabled",
       "type": "java.lang.Boolean",
       "description": "Enable Keeper's in-memory secret cache.",
+      "defaultValue": true
+    },
+    {
+      "name": "keeper.ksm.cache.persist",
+      "type": "java.lang.Boolean",
+      "description": "Persist cached secrets to disk using LocalConfigStorage.",
       "defaultValue": true
     }
   ]

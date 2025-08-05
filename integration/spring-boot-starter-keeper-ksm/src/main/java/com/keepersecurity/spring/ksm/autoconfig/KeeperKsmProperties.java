@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 
 /**
  * Holder for properties in the {@code keeper.ksm.*} namespace.
@@ -98,6 +99,11 @@ public class KeeperKsmProperties implements InitializingBean{
    * runtime.
    */
   private List<String> records = new ArrayList<>();
+
+  /**
+   * Configuration for Keeper SDK secret caching.
+   */
+  private CacheProperties cache = new CacheProperties();
 
   // Getters and setters for the properties
 
@@ -281,6 +287,24 @@ public class KeeperKsmProperties implements InitializingBean{
     this.records = records;
   }
 
+  /**
+   * Returns the caching configuration.
+   *
+   * @return cache configuration properties
+   */
+  public CacheProperties getCache() {
+    return cache;
+  }
+
+  /**
+   * Sets the caching configuration.
+   *
+   * @param cache caching properties
+   */
+  public void setCache(CacheProperties cache) {
+    this.cache = cache;
+  }
+
   @Override
   /**
    * Validates the configuration after properties are bound and applies defaults
@@ -310,6 +334,62 @@ public class KeeperKsmProperties implements InitializingBean{
     String message = "%s is not IL-5 compliant".formatted(configProvider);
     LOGGER.atError().log(message);
     throw new IllegalStateException(message);
+  }
+
+  /**
+   * Caching-related properties under {@code keeper.ksm.cache}.
+   * Custom persistent storage can be supplied by defining a
+   * {@code ConfigStorage} Spring bean.
+   */
+  public static class CacheProperties {
+
+    /**
+     * Whether Keeper SDK secret caching is enabled. Defaults to {@code true}.
+     */
+    private boolean enabled = true;
+
+    /**
+     * Whether cached secrets are persisted to disk using
+     * {@link LocalConfigStorage}, which stores encrypted cache data on disk.
+     * Defaults to {@code true}.
+     */
+    private boolean persist = true;
+
+    /**
+     * Returns whether caching is enabled.
+     *
+     * @return {@code true} to enable caching
+     */
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    /**
+     * Enables or disables caching.
+     *
+     * @param enabled {@code true} to enable caching
+     */
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
+    }
+
+    /**
+     * Returns whether cached secrets are persisted to disk.
+     *
+     * @return {@code true} to persist cached secrets
+     */
+    public boolean isPersist() {
+      return persist;
+    }
+
+    /**
+     * Enables or disables persistent caching.
+     *
+     * @param persist {@code true} to persist cached secrets
+     */
+    public void setPersist(boolean persist) {
+      this.persist = persist;
+    }
   }
 
 }

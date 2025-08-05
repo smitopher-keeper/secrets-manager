@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.keepersecurity.secretsManager.core.InMemoryStorage;
 import com.keepersecurity.secretsManager.core.KeyValueStorage;
+import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 
@@ -84,6 +85,20 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
+   * Provides the {@code ConfigStorage} used for persisting cached secrets.
+   * By default a {@link LocalConfigStorage} is supplied which stores the
+   * encrypted cache on the local filesystem. Applications may override this
+   * by declaring their own {@code ConfigStorage} bean.
+   *
+   * @return default cache storage implementation
+   */
+  @Bean
+  @ConditionalOnMissingBean(type = "com.keepersecurity.secretsManager.core.ConfigStorage")
+  KeyValueStorage configStorage() {
+    return new LocalConfigStorage();
+  }
+
+  /**
    * Creates a {@link SecretsManagerOptions} bean based on the supplied
    * {@link KeeperKsmProperties}. If a one-time token is configured it will be
    * consumed to initialise the local configuration before the application exits.
@@ -93,22 +108,23 @@ public class KeeperKsmAutoConfiguration {
    * while using the emulator an {@link IllegalStateException} is thrown to fail
    * fast.
    *
-   * <p>The {@code ksm.cache.enabled} property controls whether the Keeper SDK
+   * <p>The {@code keeper.ksm.cache.enabled} property controls whether the Keeper SDK
    * caches secrets in memory. Caching is enabled by default to improve
-   * performance for repeated secret access. Setting the property to
-   * {@code false} disables caching and forces the SDK to fetch fresh data from
-   * Keeper Secrets Manager on every request.</p>
+   * performance for repeated secret access. The accompanying property
+   * {@code keeper.ksm.cache.persist} toggles persistent storage via
+   * {@link LocalConfigStorage}, storing encrypted cache data on disk.</p>
    *
    * @param properties bound Keeper configuration properties
-   * @param environment Spring environment used for bootstrap checks and cache
-   *     configuration
+   * @param environment Spring environment used for bootstrap checks
+   * @param configStorage storage backend for persistent caching
    * @return a fully configured {@link SecretsManagerOptions} instance
    * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
    *     one-time token is provided while IL5 is enforced
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
-  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties, Environment environment) {
+  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties, Environment environment,
+      KeyValueStorage configStorage) {
     if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
       if (properties.isEnforceIl5()) {
         String message = "SoftHSM2 is not IL-5 compliant";
@@ -145,13 +161,26 @@ public class KeeperKsmAutoConfiguration {
       }
       consumeToken(token, path, properties);
     });
-    KeyValueStorage storage = new InMemoryStorage(getKmsConfig(properties));
-    SecretsManagerOptions options = new SecretsManagerOptions(storage);
-    boolean cacheEnabled = environment.getProperty("ksm.cache.enabled", Boolean.class, Boolean.TRUE);
+    KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
+    SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
+    boolean cacheEnabled = properties.getCache().isEnabled();
     try {
       options.getClass().getMethod("setAllowCaching", boolean.class).invoke(options, cacheEnabled);
     } catch (ReflectiveOperationException e) {
       LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
+    }
+    if (cacheEnabled && properties.getCache().isPersist()) {
+      try {
+        Class<?> storageClass;
+        try {
+          storageClass = Class.forName("com.keepersecurity.secretsManager.core.ConfigStorage");
+        } catch (ClassNotFoundException e) {
+          storageClass = KeyValueStorage.class;
+        }
+        options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
+      } catch (ReflectiveOperationException e) {
+        LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
+      }
     }
     return options;
   }
