@@ -33,3 +33,8 @@ switch (agentType) {
 ```
 
 > For Java 17+, **enhanced switch expressions** are preferred.
+
+### ✅ Constructor and Javadoc Guidelines
+
+- If a new class only has an implicit constructor (i.e., none defined), **add an explicit constructor with Javadoc**.
+- **Always document new classes and methods** with meaningful Javadoc, unless explicitly told not to.
