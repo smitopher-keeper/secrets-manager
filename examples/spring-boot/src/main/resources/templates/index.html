@@ -16,7 +16,7 @@
 <div>
     <h2>Configuration</h2>
     <ul>
-        <li th:each="entry : ${#maps.entries(configMap)}">
+        <li th:each="entry : ${configMap}">
             <span th:text="${entry.key}"></span>: <span th:text="${entry.value}"></span>
         </li>
     </ul>

@@ -6,3 +6,4 @@
  */
 
 rootProject.name = 'spring-boot'
+includeBuild('../../integration/spring-boot-starter-keeper-ksm')
