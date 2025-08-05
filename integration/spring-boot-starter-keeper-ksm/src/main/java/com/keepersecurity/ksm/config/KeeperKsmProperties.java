@@ -12,22 +12,45 @@ public class KeeperKsmProperties {
   private final Cache cache = new Cache();
   private final Config config = new Config();
 
+  /**
+   * Indicates whether IL‑5 compliance is enforced during initialization.
+   *
+   * @return {@code true} if IL‑5 enforcement is enabled
+   */
   public boolean isEnforceIl5() {
     return enforceIl5;
   }
 
+  /**
+   * Enables or disables IL‑5 enforcement.
+   *
+   * @param enforceIl5 {@code true} to enforce IL‑5 compliance
+   */
   public void setEnforceIl5(boolean enforceIl5) {
     this.enforceIl5 = enforceIl5;
   }
 
+  /**
+   * Returns cache-related configuration settings.
+   *
+   * @return cache configuration
+   */
   public Cache getCache() {
     return cache;
   }
 
+  /**
+   * Returns Keeper configuration source settings.
+   *
+   * @return configuration source settings
+   */
   public Config getConfig() {
     return config;
   }
 
+  /**
+   * Cache-related configuration options.
+   */
   public static class Cache {
     /**
      * Enables in-memory caching of Keeper secrets.
@@ -39,23 +62,46 @@ public class KeeperKsmProperties {
      */
     private boolean persist = true;
 
+    /**
+     * Indicates whether caching is enabled.
+     *
+     * @return {@code true} if caching is enabled
+     */
     public boolean isEnabled() {
       return enabled;
     }
 
+    /**
+     * Enables or disables caching of secrets.
+     *
+     * @param enabled {@code true} to enable caching
+     */
     public void setEnabled(boolean enabled) {
       this.enabled = enabled;
     }
 
+    /**
+     * Indicates whether cached secrets are persisted across restarts.
+     *
+     * @return {@code true} if persistent caching is enabled
+     */
     public boolean isPersist() {
       return persist;
     }
 
+    /**
+     * Enables or disables persistent cache storage.
+     *
+     * @param persist {@code true} to persist cached secrets
+     */
     public void setPersist(boolean persist) {
       this.persist = persist;
     }
   }
 
+  /**
+   * Configuration source and HSM provider settings.
+   */
   public static class Config {
     /**
      * HSM provider type (e.g., "pkcs11", "softhsm2", "bouncycastle-fips").
@@ -72,26 +118,56 @@ public class KeeperKsmProperties {
      */
     private boolean allowFallback = true;
 
+    /**
+     * Returns the configured HSM provider identifier.
+     *
+     * @return HSM provider name or {@code null}
+     */
     public String getHsmProvider() {
       return hsmProvider;
     }
 
+    /**
+     * Sets the HSM provider identifier to use.
+     *
+     * @param hsmProvider provider name
+     */
     public void setHsmProvider(String hsmProvider) {
       this.hsmProvider = hsmProvider;
     }
 
+    /**
+     * Returns the source location for Keeper configuration.
+     *
+     * @return configuration source
+     */
     public String getSource() {
       return source;
     }
 
+    /**
+     * Sets the source location for Keeper configuration.
+     *
+     * @param source file path, URI or PKCS#11 locator
+     */
     public void setSource(String source) {
       this.source = source;
     }
 
+    /**
+     * Indicates whether a one-time token fallback is permitted.
+     *
+     * @return {@code true} if fallback is allowed
+     */
     public boolean isAllowFallback() {
       return allowFallback;
     }
 
+    /**
+     * Enables or disables fallback loading from a one-time token.
+     *
+     * @param allowFallback {@code true} to allow fallback
+     */
     public void setAllowFallback(boolean allowFallback) {
       this.allowFallback = allowFallback;
     }
