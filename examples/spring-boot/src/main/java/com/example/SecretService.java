@@ -15,6 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service that fetches secrets from Keeper Secrets Manager and exposes
+ * the resolved Spring configuration.
+ */
 @Service
 public class SecretService {
 
@@ -23,11 +27,24 @@ public class SecretService {
     private final SecretsManagerOptions options;
     private final Environment environment;
 
+    /**
+     * Creates a new service for retrieving secrets.
+     *
+     * @param options      configuration for the Secrets Manager client
+     * @param environment  Spring environment to read configuration from
+     */
     public SecretService(SecretsManagerOptions options, Environment environment) {
         this.options = options;
         this.environment = environment;
     }
 
+    /**
+     * Returns the first secret value that matches the given Keeper notation.
+     *
+     * @param keeperNotation notation path identifying the secret
+     * @return the secret value or {@code null} if not found
+     * @throws SecretFetchException if retrieval fails
+     */
     public String fetchSecret(String keeperNotation) {
         if (keeperNotation == null || keeperNotation.isBlank()) {
             return null;
@@ -41,6 +58,11 @@ public class SecretService {
         }
     }
 
+    /**
+     * Returns a map of all resolved Spring configuration properties.
+     *
+     * @return property name to value mappings
+     */
     public Map<String, Object> getSpringConfig() {
         Map<String, Object> props = new LinkedHashMap<>();
         if (environment instanceof ConfigurableEnvironment configurableEnvironment) {
