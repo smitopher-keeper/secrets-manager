@@ -45,6 +45,28 @@ class Il5EnforcementTest {
         }
     }
 
+    @Test
+    void oneTimeTokenNotAllowedWhenIl5Enforced() {
+        contextRunner
+                .withPropertyValues(
+                        "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.one-time-token=dummy.txt")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void warnsInsteadOfFailingWhenBootstrapModeWarn() {
+        contextRunner
+                .withPropertyValues(
+                        "keeper.ksm.enforce-il5=true",
+                        "keeper.ksm.container-type=sun_pkcs11",
+                        "keeper.ksm.hsm-provider=awsCloudHsm",
+                        "bootstrap.check.mode=warn",
+                        "crypto.check.mode=warn",
+                        "ksm.config.ott-token=dummy")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
+    }
+
     static class TestFipsProvider extends Provider {
         TestFipsProvider() {
             super("BCFIPS", 1.0, "test fips provider");

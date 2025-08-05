@@ -25,6 +25,8 @@ keeper.ksm.secret-path = path/to/ksm-config.json
 ```
 On the first run, the starter reads the token from the file, redeems it to retrieve your KSM configuration and save it to the specified JSON file. The token file is deleted **after** the configuration is generated and the starter throws a `OneTimeTokenConsumedException` to stop the application. **Note:** one-time tokens can only be used once; restart the application after removing the `keeper.ksm.one-time-token` property from your configuration.
 
+When `keeper.ksm.enforce-il5=true`, this one-time-token bootstrapping is blocked to maintain IL5 compliance. You may override this behavior by setting `bootstrap.check.mode=warn` to merely log a warning.
+
 - **Option 2: Existing Config File** – If you already have a Keeper config JSON (e.g., from a previous initialization), you can just specify:
   ```properties
   keeper.ksm.secret-path = path/to/ksm-config.json
