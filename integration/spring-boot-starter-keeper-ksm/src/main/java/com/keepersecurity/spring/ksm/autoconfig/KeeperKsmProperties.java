@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -356,6 +357,20 @@ public class KeeperKsmProperties implements InitializingBean{
     private boolean persist = true;
 
     /**
+     * File path to persist the cached secrets (default:
+     * {@code ~/.keeper/ksm/ksm-cache.json}). Ignored if {@link #persist} is
+     * {@code false}. The file is encrypted internally by the SDK.
+     */
+    private String path = System.getProperty("user.home") + "/.keeper/ksm/ksm-cache.json";
+
+    /**
+     * Time-to-live for cached secrets, in seconds. After this duration secrets
+     * are re-fetched from Keeper. Applies to both in-memory and persistent
+     * cache backends. Default: 300 seconds (5 minutes).
+     */
+    private Duration ttl = Duration.ofSeconds(300);
+
+    /**
      * Returns whether caching is enabled.
      *
      * @return {@code true} to enable caching
@@ -389,6 +404,43 @@ public class KeeperKsmProperties implements InitializingBean{
      */
     public void setPersist(boolean persist) {
       this.persist = persist;
+    }
+
+    /**
+     * Returns the file path used to persist cached secrets.
+     *
+     * @return path to the persistent cache file
+     */
+    public String getPath() {
+      return path;
+    }
+
+    /**
+     * Sets the file path used to persist cached secrets. If blank or {@code null}
+     * the default path is used.
+     *
+     * @param path location of the persistent cache file
+     */
+    public void setPath(String path) {
+      this.path = path;
+    }
+
+    /**
+     * Returns the time-to-live for cached secrets.
+     *
+     * @return cache TTL duration
+     */
+    public Duration getTtl() {
+      return ttl;
+    }
+
+    /**
+     * Sets the time-to-live for cached secrets.
+     *
+     * @param ttl cache TTL duration
+     */
+    public void setTtl(Duration ttl) {
+      this.ttl = ttl;
     }
   }
 
