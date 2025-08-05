@@ -178,6 +178,10 @@ public class KeeperKsmAutoConfiguration {
       case AWS -> AwsSaver.save(config, props);
       case AZURE -> AzureSaver.save(config, props);
       case GOOGLE -> GoogleSaver.save(config, props);
+      case AWS_HSM -> AwsHsmSaver.save(config, props);
+      case AZURE_HSM -> AzureHsmSaver.save(config, props);
+      case FORTANIX -> FortanixSaver.save(config, props);
+      case HSM -> HsmSaver.save(config, props);
       default -> throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
     }
 
@@ -204,7 +208,7 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private String resolveKeystoreType(KsmConfigProvider providerType) {
+  private static String resolveKeystoreType(KsmConfigProvider providerType) {
     return switch (providerType) {
       case BC_FIPS -> "BCFKS";
       case ORACLE_FIPS -> "PKCS12";
@@ -222,6 +226,7 @@ public class KeeperKsmAutoConfiguration {
           }
         };
       }
+      case HSM, AWS_HSM, AZURE_HSM, FORTANIX -> "PKCS11";
       default -> {
         String message = "Unsupported provider for keystore persistence: " + providerType;
         LOGGER.atWarn().log(message);
@@ -230,7 +235,7 @@ public class KeeperKsmAutoConfiguration {
     };
   }
 
-  private void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
+  private static void saveConfigToKeystore(ObjectNode config, KeeperKsmProperties props) {
     try {
       Path keystorePath = props.getSecretPath();
       Files.createDirectories(keystorePath.getParent());
@@ -340,6 +345,30 @@ public class KeeperKsmAutoConfiguration {
       } catch (Exception e) {
         throw new IllegalStateException("Failed to persist the KMS Config to Google Secret Manager", e);
       }
+    }
+  }
+
+  private static class HsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      saveConfigToKeystore(config, props);
+    }
+  }
+
+  private static class AwsHsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
+    }
+  }
+
+  private static class AzureHsmSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
+    }
+  }
+
+  private static class FortanixSaver {
+    static void save(ObjectNode config, KeeperKsmProperties props) {
+      HsmSaver.save(config, props);
     }
   }
 
