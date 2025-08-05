@@ -27,6 +27,8 @@ On the first run, the starter reads the token from the file, redeems it to retri
 
 When `keeper.ksm.enforce-il5=true`, this one-time-token bootstrapping is blocked to maintain IL5 compliance. You may override this behavior by setting `bootstrap.check.mode=warn` to merely log a warning.
 
+IL5 enforcement also requires audit logging. Configure a logger named `com.keepersecurity` or `com.keepersecurity.ksm` at level `INFO` or higher and direct it to a secure sink such as a file appender. If no audit sink is detected the application fails to start by default. Override this behavior with `audit.check.mode=warn` to only log a warning.
+
 - **Option 2: Existing Config File** – If you already have a Keeper config JSON (e.g., from a previous initialization), you can just specify:
   ```properties
   keeper.ksm.secret-path = path/to/ksm-config.json

@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
+    compileOnly 'ch.qos.logback:logback-classic'
     compileOnlyApi 'org.bouncycastle:bc-fips:2.1.0'
     compileOnlyApi 'org.bouncycastle:bcprov-jdk18on:1.78' 
     compileOnlyApi 'software.amazon.awssdk:kms:2.20.28'

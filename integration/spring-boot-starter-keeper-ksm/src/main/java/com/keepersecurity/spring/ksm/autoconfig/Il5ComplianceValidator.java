@@ -7,6 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.FileAppender;
 
 /**
  * Validates that a FIPS-certified crypto provider is active when IL5 enforcement is enabled.
@@ -41,6 +45,56 @@ class Il5ComplianceValidator implements InitializingBean {
         throw new IllegalStateException(message);
       }
     }
+
+    Logger baseLogger = LoggerFactory.getLogger("com.keepersecurity");
+    Logger ksmLogger = LoggerFactory.getLogger("com.keepersecurity.ksm");
+    String auditMode = environment.getProperty("audit.check.mode");
+    boolean warn = "warn".equalsIgnoreCase(auditMode);
+
+    boolean levelOk = isLevelInfoOrHigher(baseLogger) || isLevelInfoOrHigher(ksmLogger);
+    if (!levelOk) {
+      String message =
+          "Audit logger level for 'com.keepersecurity' or 'com.keepersecurity.ksm' must be set to INFO or higher.";
+      if (warn) {
+        LOGGER.atWarn().log(message);
+      } else {
+        LOGGER.atError().log(message);
+        throw new IllegalStateException(message);
+      }
+    }
+
+    Logger rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    boolean sinkPresent = hasSecureAppender(baseLogger) || hasSecureAppender(ksmLogger)
+        || hasSecureAppender(rootLogger);
+    if (!sinkPresent) {
+      String message =
+          "Audit logging not detected. IL5 enforcement requires audit visibility.";
+      if (warn) {
+        LOGGER.atWarn().log(message);
+      } else {
+        LOGGER.atError().log(message);
+        throw new IllegalStateException(message);
+      }
+    }
+  }
+
+  private boolean isLevelInfoOrHigher(Logger logger) {
+    if (logger instanceof ch.qos.logback.classic.Logger logback) {
+      return logback.getEffectiveLevel().isGreaterOrEqual(Level.INFO);
+    }
+    return logger.isInfoEnabled() || logger.isWarnEnabled() || logger.isErrorEnabled();
+  }
+
+  private boolean hasSecureAppender(Logger logger) {
+    if (logger instanceof ch.qos.logback.classic.Logger logback) {
+      for (java.util.Iterator<Appender<ILoggingEvent>> it = logback.iteratorForAppenders(); it.hasNext(); ) {
+        Appender<ILoggingEvent> appender = it.next();
+        if (appender instanceof FileAppender) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 
