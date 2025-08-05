@@ -131,6 +131,17 @@ signaling that they meet IL-5 security requirements.
 
 This starter enables Keeper’s persistent cache by default to reduce repeated secret lookups.
 
+Configure the cache location or disable persistence:
+
+```yaml
+keeper:
+  ksm:
+    cache:
+      persist: true
+      path: /etc/ksm/secure-cache.json  # Optional; defaults to ~/.keeper/ksm/ksm-cache.json
+      ttl: 10m                          # Optional; defaults to 300s
+```
+
 To disable all caching:
 
 ```yaml
@@ -150,7 +161,14 @@ keeper:
       persist: false
 ```
 
-You may also override the caching strategy by defining a custom ConfigStorage bean.
+You may also override the caching strategy by defining a custom `ConfigStorage` bean:
+
+```java
+@Bean
+public ConfigStorage configStorage() {
+    return new EncryptedFileConfigStorage("/secure/ksm-cache.enc", masterKey);
+}
+```
 
 ### Sun PKCS#11 Requirements
 

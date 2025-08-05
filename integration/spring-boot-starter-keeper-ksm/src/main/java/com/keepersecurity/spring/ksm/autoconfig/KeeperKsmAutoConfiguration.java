@@ -39,6 +39,7 @@ import com.keepersecurity.secretsManager.core.KeyValueStorage;
 import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
+import java.time.Duration;
 
 /**
  * Spring Boot auto-configuration for Keeper Secrets Manager.
@@ -86,17 +87,31 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
-   * Provides the {@code ConfigStorage} used for persisting cached secrets.
-   * By default a {@link LocalConfigStorage} is supplied which stores the
-   * encrypted cache on the local filesystem. Applications may override this
-   * by declaring their own {@code ConfigStorage} bean.
+   * Provides the {@code ConfigStorage} used for caching secrets. When
+   * {@code keeper.ksm.cache.persist} is {@code true} a
+   * {@link LocalConfigStorage} pointing to the configured
+   * {@code keeper.ksm.cache.path} is returned. Otherwise an in-memory
+   * implementation is used. Applications may override this by declaring their
+   * own {@code ConfigStorage} bean.
    *
-   * @return default cache storage implementation
+   * @return cache storage implementation
    */
   @Bean
   @ConditionalOnMissingBean(type = "com.keepersecurity.secretsManager.core.ConfigStorage")
-  KeyValueStorage configStorage() {
-    return new LocalConfigStorage();
+  Object configStorage(KeeperKsmProperties properties) {
+    if (properties.getCache().isPersist()) {
+      String path = properties.getCache().getPath();
+      if (path == null || path.isBlank()) {
+        path = System.getProperty("user.home") + "/.keeper/ksm/ksm-cache.json";
+      }
+      return new LocalConfigStorage(path);
+    }
+    try {
+      return Class.forName("com.keepersecurity.secretsManager.core.InMemoryConfigStorage")
+          .getDeclaredConstructor().newInstance();
+    } catch (ReflectiveOperationException e) {
+      return new InMemoryStorage();
+    }
   }
 
   /**
@@ -117,7 +132,7 @@ public class KeeperKsmAutoConfiguration {
    *
    * @param properties bound Keeper configuration properties
    * @param environment Spring environment used for bootstrap checks
-   * @param configStorage storage backend for persistent caching
+   * @param configStorage storage backend for cached secrets
    * @return a fully configured {@link SecretsManagerOptions} instance
    * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
    *     one-time token is provided while IL5 is enforced
@@ -150,18 +165,22 @@ public class KeeperKsmAutoConfiguration {
     } catch (ReflectiveOperationException e) {
       LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
     }
-    if (cacheEnabled && properties.getCache().isPersist()) {
+    try {
+      options.getClass().getMethod("setCacheTtl", Duration.class)
+          .invoke(options, properties.getCache().getTtl());
+    } catch (ReflectiveOperationException e) {
+      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support cache TTL configuration");
+    }
+    try {
+      Class<?> storageClass;
       try {
-        Class<?> storageClass;
-        try {
-          storageClass = Class.forName("com.keepersecurity.secretsManager.core.ConfigStorage");
-        } catch (ClassNotFoundException e) {
-          storageClass = KeyValueStorage.class;
-        }
-        options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
-      } catch (ReflectiveOperationException e) {
-        LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
+        storageClass = Class.forName("com.keepersecurity.secretsManager.core.ConfigStorage");
+      } catch (ClassNotFoundException e) {
+        storageClass = KeyValueStorage.class;
       }
+      options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
+    } catch (ReflectiveOperationException e) {
+      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
     }
     return options;
   }
