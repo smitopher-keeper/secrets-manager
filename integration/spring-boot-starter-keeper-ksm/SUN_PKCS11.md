@@ -4,13 +4,20 @@ The `SUN_PKCS11` option uses the JDK's built‑in SunPKCS11 security provider. T
 provider is disabled by default and must be loaded with a configuration file that
 points to your HSM's PKCS#11 library.
 
-1. Create a small config file, for example `pkcs11.cfg`:
+1. Enable the provider's module so it can be discovered at runtime. Add the
+   `jdk.crypto.cryptoki` module to the JVM:
+   ```
+   java --add-modules jdk.crypto.cryptoki ...
+   ```
+   You can also set `JAVA_TOOL_OPTIONS=--add-modules=jdk.crypto.cryptoki` to apply
+   it automatically.
+2. Create a small config file, for example `pkcs11.cfg`:
    ```
    name = MyHsm
    library = /path/to/libpkcs11.so
    slot = 0
    ```
-2. Register the provider before the application starts. You can edit
+3. Register the provider before the application starts. You can edit
    `${JAVA_HOME}/conf/security/java.security` to add:
    ```
    security.provider.9=SunPKCS11 /path/to/pkcs11.cfg
