@@ -3,6 +3,10 @@
 This sample demonstrates how to use the `spring-boot-starter-keeper-ksm` starter
 in a minimal Spring Boot application.
 
+The example is linked to the starter within this repository using a Gradle
+composite build, so you can run it without configuring access to Keeper's GitHub
+Packages registry.
+
 ## Keeper Spring Boot Example
 
 This example demonstrates fetching KSM secrets using a Thymeleaf frontend.
