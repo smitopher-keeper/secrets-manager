@@ -63,6 +63,13 @@ public class KeeperKsmProperties {
     private boolean persist = true;
 
     /**
+     * If true, expired secrets may still be returned from cache
+     * when the KSM service is unreachable.
+     * Default is false — expired secrets will cause a failure.
+     */
+    private boolean allowStaleIfOffline = false;
+
+    /**
      * Indicates whether caching is enabled.
      *
      * @return {@code true} if caching is enabled
@@ -96,6 +103,26 @@ public class KeeperKsmProperties {
      */
     public void setPersist(boolean persist) {
       this.persist = persist;
+    }
+
+    /**
+     * Indicates whether expired secrets may be served when the KSM
+     * service cannot be reached.
+     *
+     * @return {@code true} to allow stale secrets if offline
+     */
+    public boolean isAllowStaleIfOffline() {
+      return allowStaleIfOffline;
+    }
+
+    /**
+     * Enables or disables returning stale secrets when the KSM service is
+     * unavailable.
+     *
+     * @param allowStaleIfOffline {@code true} to allow stale secrets if offline
+     */
+    public void setAllowStaleIfOffline(boolean allowStaleIfOffline) {
+      this.allowStaleIfOffline = allowStaleIfOffline;
     }
   }
 

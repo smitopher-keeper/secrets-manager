@@ -371,6 +371,13 @@ public class KeeperKsmProperties implements InitializingBean{
     private Duration ttl = Duration.ofSeconds(300);
 
     /**
+     * If true, expired secrets may still be returned from cache when the KSM
+     * service is unreachable. Default is {@code false} for stricter
+     * environments such as IL5.
+     */
+    private boolean allowStaleIfOffline = false;
+
+    /**
      * Returns whether caching is enabled.
      *
      * @return {@code true} to enable caching
@@ -441,6 +448,26 @@ public class KeeperKsmProperties implements InitializingBean{
      */
     public void setTtl(Duration ttl) {
       this.ttl = ttl;
+    }
+
+    /**
+     * Indicates whether expired secrets may be served when the KSM service
+     * cannot be reached.
+     *
+     * @return {@code true} to allow stale secrets if offline
+     */
+    public boolean isAllowStaleIfOffline() {
+      return allowStaleIfOffline;
+    }
+
+    /**
+     * Enables or disables returning stale secrets when the KSM service is
+     * unavailable.
+     *
+     * @param allowStaleIfOffline {@code true} to allow stale secrets if offline
+     */
+    public void setAllowStaleIfOffline(boolean allowStaleIfOffline) {
+      this.allowStaleIfOffline = allowStaleIfOffline;
     }
   }
 
