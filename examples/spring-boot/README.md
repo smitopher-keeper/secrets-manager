@@ -27,6 +27,16 @@ keeper:
     secret-path: ~/.keeper/ksm-config.json
 ```
 
+### Run the tests
+
+From `/examples/spring-boot`, run:
+
+```bash
+./gradlew test
+```
+
+These tests verify the `SecretService` logic for fetching secrets and the web controller's model population.
+
 ### Start the example
 
 From `/examples/spring-boot`, run:
