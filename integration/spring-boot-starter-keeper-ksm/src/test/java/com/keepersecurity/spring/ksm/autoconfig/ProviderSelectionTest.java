@@ -2,7 +2,6 @@ package com.keepersecurity.spring.ksm.autoconfig;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.security.Security;
@@ -10,7 +9,10 @@ import java.security.Security;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
-    properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
+    properties = {
+        "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
+        "keeper.ksm.provider=com.keepersecurity.spring.ksm.autoconfig.TestBcProvider"
+    })
 class ProviderSelectionTest {
 
     @AfterEach
@@ -19,7 +21,9 @@ class ProviderSelectionTest {
     }
 
     @Test
-    void contextLoadsWithDefaultProvider() {
-        assertNotNull(Security.getProviders(), "Security providers should be available");
+    void bcProviderSelected() {
+        Security.addProvider(new TestBcProvider());
+        assertNotNull(Security.getProvider("BC"), "BC provider should be registered");
     }
+
 }
