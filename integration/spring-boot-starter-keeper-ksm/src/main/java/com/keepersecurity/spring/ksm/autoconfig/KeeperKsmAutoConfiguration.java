@@ -172,6 +172,13 @@ public class KeeperKsmAutoConfiguration {
       LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support cache TTL configuration");
     }
     try {
+      options.getClass().getMethod("setAllowStaleCacheOnFailure", boolean.class)
+          .invoke(options, properties.getCache().isAllowStaleIfOffline());
+    } catch (ReflectiveOperationException e) {
+      LOGGER.atDebug().setCause(e)
+          .log("SecretsManagerOptions does not support stale cache failover configuration");
+    }
+    try {
       Class<?> storageClass;
       try {
         storageClass = Class.forName("com.keepersecurity.secretsManager.core.ConfigStorage");

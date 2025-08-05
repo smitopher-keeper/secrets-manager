@@ -161,6 +161,19 @@ keeper:
       persist: false
 ```
 
+To tolerate temporary KSM outages and still read secrets from the cache, enable
+the fallback to expired entries:
+
+```yaml
+keeper:
+  ksm:
+    cache:
+      allow-stale-if-offline: true   # Allows expired secrets if KSM is down
+```
+
+Use with caution. Enabling this may help during outages, but stale secrets may
+violate IL5 security posture.
+
 You may also override the caching strategy by defining a custom `ConfigStorage` bean:
 
 ```java
