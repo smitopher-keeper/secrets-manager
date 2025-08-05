@@ -127,40 +127,20 @@ public class KeeperKsmAutoConfiguration {
   SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties, Environment environment,
       KeyValueStorage configStorage) {
     if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
-      if (properties.isEnforceIl5()) {
-        String message = "SoftHSM2 is not IL-5 compliant";
-        LOGGER.atError().log(message);
-        throw new IllegalStateException(message);
-      }
-      PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
-      properties.setPkcs11Library(pkcs11.getLibraryPath());
+      softhms2Provider(properties);
     }
     if (properties.isEnforceIl5()) {
-      String ott = environment.getProperty("ksm.config.ott-token");
-      boolean tokenProvided = properties.getOneTimeToken() != null
-          || (ott != null && !ott.isBlank());
-      if (tokenProvided) {
-        String message =
-            "One-time-token config bootstrapping is disabled under IL5 enforcement.";
-        if ("warn".equalsIgnoreCase(environment.getProperty("bootstrap.check.mode"))) {
-          LOGGER.atWarn().log(message);
-        } else {
-          LOGGER.atError().log(message);
-          throw new IllegalStateException(message);
-        }
-      }
+      enforceIl5(properties, environment);
     }
-    Optional<Path> tokenPath = Optional.ofNullable(properties.getOneTimeToken());
-    tokenPath.ifPresent(path -> {
-      String token;
+    Optional.ofNullable(properties.getOneTimeToken()).ifPresent(path -> {
       try {
-        token = Files.readString(path);
+        String token = Files.readString(path);
+        consumeToken(token, path, properties);
       } catch (IOException e) {
         String message = "failure loading KMS One Time Token";
         LOGGER.atError().setCause(e).log(message);
         throw new IllegalStateException(message, e);
       }
-      consumeToken(token, path, properties);
     });
     KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
     SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
@@ -184,6 +164,32 @@ public class KeeperKsmAutoConfiguration {
       }
     }
     return options;
+  }
+
+  private void enforceIl5(KeeperKsmProperties properties, Environment environment) {
+    String ott = environment.getProperty("ksm.config.ott-token");
+    boolean tokenProvided = properties.getOneTimeToken() != null
+        || (ott != null && !ott.isBlank());
+    if (tokenProvided) {
+      String message =
+          "One-time-token config bootstrapping is disabled under IL5 enforcement.";
+      if ("warn".equalsIgnoreCase(environment.getProperty("bootstrap.check.mode"))) {
+        LOGGER.atWarn().log(message);
+      } else {
+        LOGGER.atError().log(message);
+        throw new IllegalStateException(message);
+      }
+    }
+  }
+
+  private void softhms2Provider(KeeperKsmProperties properties) {
+    if (properties.isEnforceIl5()) {
+      String message = "SoftHSM2 is not IL-5 compliant";
+      LOGGER.atError().log(message);
+      throw new IllegalStateException(message);
+    }
+    PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
+    properties.setPkcs11Library(pkcs11.getLibraryPath());
   }
 
   /**
