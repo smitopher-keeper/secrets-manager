@@ -85,12 +85,14 @@ public class KeeperKsmAutoConfiguration {
    * fast.
    *
    * @param properties bound Keeper configuration properties
+   * @param environment Spring environment used for bootstrap checks
    * @return a fully configured {@link SecretsManagerOptions} instance
-   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement
+   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
+   *     one-time token is provided while IL5 is enforced
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
-  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties) {
+  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties, Environment environment) {
     if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
       if (properties.isEnforceIl5()) {
         String message = "SoftHSM2 is not IL-5 compliant";
@@ -99,6 +101,21 @@ public class KeeperKsmAutoConfiguration {
       }
       PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
       properties.setPkcs11Library(pkcs11.getLibraryPath());
+    }
+    if (properties.isEnforceIl5()) {
+      String ott = environment.getProperty("ksm.config.ott-token");
+      boolean tokenProvided = properties.getOneTimeToken() != null
+          || (ott != null && !ott.isBlank());
+      if (tokenProvided) {
+        String message =
+            "One-time-token config bootstrapping is disabled under IL5 enforcement.";
+        if ("warn".equalsIgnoreCase(environment.getProperty("bootstrap.check.mode"))) {
+          LOGGER.atWarn().log(message);
+        } else {
+          LOGGER.atError().log(message);
+          throw new IllegalStateException(message);
+        }
+      }
     }
     Optional<Path> tokenPath = Optional.ofNullable(properties.getOneTimeToken());
     tokenPath.ifPresent(path -> {
