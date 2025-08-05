@@ -8,6 +8,11 @@ package com.keepersecurity.spring.ksm.autoconfig;
  */
 public class OneTimeTokenConsumedException extends RuntimeException {
 
+    /**
+     * Creates a new exception indicating a one-time token has already been used.
+     *
+     * @param message detail message describing the condition
+     */
     public OneTimeTokenConsumedException(String message) {
         super(message);
     }

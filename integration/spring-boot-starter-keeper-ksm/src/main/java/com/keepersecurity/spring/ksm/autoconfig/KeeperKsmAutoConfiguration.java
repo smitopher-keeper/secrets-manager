@@ -186,6 +186,13 @@ public class KeeperKsmAutoConfiguration {
     return options;
   }
 
+  /**
+   * Provides a validator that enforces IL - 5 compliance rules at start-up.
+   *
+   * @param properties bound configuration properties
+   * @param environment Spring environment used to check override flags
+   * @return a validator that performs IL - 5 checks after initialization
+   */
   @Bean
   Il5ComplianceValidator il5ComplianceValidator(KeeperKsmProperties properties, Environment environment) {
     return new Il5ComplianceValidator(properties, environment);
