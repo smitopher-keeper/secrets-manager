@@ -54,7 +54,8 @@ import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
-@EnableConfigurationProperties(KeeperKsmProperties.class) // Enable binding of KeeperKsmProperties
+@EnableConfigurationProperties({KeeperKsmProperties.class,
+    com.keepersecurity.ksm.config.KeeperKsmProperties.class}) // Enable binding of KeeperKsmProperties
 public class KeeperKsmAutoConfiguration {
 
   private static final List<String> CONFIG_KEYS;
