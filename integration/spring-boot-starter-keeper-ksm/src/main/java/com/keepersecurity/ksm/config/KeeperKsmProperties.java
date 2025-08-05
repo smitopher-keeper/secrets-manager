@@ -13,6 +13,12 @@ public class KeeperKsmProperties {
   private final Config config = new Config();
 
   /**
+   * Creates a new {@code KeeperKsmProperties} instance with default settings.
+   */
+  public KeeperKsmProperties() {
+  }
+
+  /**
    * Indicates whether IL‑5 compliance is enforced during initialization.
    *
    * @return {@code true} if IL‑5 enforcement is enabled
@@ -68,6 +74,12 @@ public class KeeperKsmProperties {
      * Default is false — expired secrets will cause a failure.
      */
     private boolean allowStaleIfOffline = false;
+
+    /**
+     * Creates a new {@code Cache} instance with default settings.
+     */
+    public Cache() {
+    }
 
     /**
      * Indicates whether caching is enabled.
@@ -144,6 +156,12 @@ public class KeeperKsmProperties {
      * Whether to allow fallback loading from a one-time-token.
      */
     private boolean allowFallback = true;
+
+    /**
+     * Creates a new {@code Config} instance with default settings.
+     */
+    public Config() {
+    }
 
     /**
      * Returns the configured HSM provider identifier.
