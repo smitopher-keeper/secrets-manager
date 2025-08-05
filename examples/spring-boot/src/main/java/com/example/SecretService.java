@@ -2,6 +2,8 @@ package com.example;
 
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -15,6 +17,8 @@ import java.util.Map;
 
 @Service
 public class SecretService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecretService.class);
 
     private final SecretsManagerOptions options;
     private final Environment environment;
@@ -32,7 +36,8 @@ public class SecretService {
             List<String> results = SecretsManager.getNotationResults(options, keeperNotation);
             return results.isEmpty() ? null : results.get(0);
         } catch (Exception e) {
-            return null;
+            logger.error("Failed to fetch secret for notation {}", keeperNotation, e);
+            throw new SecretFetchException("Failed to fetch secret", e);
         }
     }
 
