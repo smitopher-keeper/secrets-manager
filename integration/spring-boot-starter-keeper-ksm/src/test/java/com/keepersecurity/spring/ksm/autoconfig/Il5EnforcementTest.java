@@ -9,7 +9,9 @@ class Il5EnforcementTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(KeeperKsmAutoConfiguration.class)
-            .withPropertyValues("keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json");
+            .withPropertyValues(
+                    "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
+                    "audit.check.mode=warn");
 
     @Test
     void failsWithoutHsmProviderWhenIl5Enforced() {
