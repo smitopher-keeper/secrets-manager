@@ -59,6 +59,15 @@ public class KeeperKsmAutoConfiguration {
   private static final List<String> CONFIG_KEYS;
   private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmAutoConfiguration.class);
 
+  /**
+   * UID of a non-existent record used solely to trigger one-time token
+   * consumption. The Keeper SDK currently consumes a token on the first
+   * record retrieval. Requesting this dummy record ensures the token is
+   * consumed without pulling any real data. Replace this once the SDK exposes
+   * a dedicated token consumption API.
+   */
+  private static final String DUMMY_RECORD_UID = "AAAAAAAAAAAAAAAAAAAAAA";
+
   static {
     CONFIG_KEYS = List.of(KEY_HOSTNAME,
         KEY_CLIENT_ID,
@@ -166,8 +175,7 @@ public class KeeperKsmAutoConfiguration {
     InMemoryStorage inMemoryStorage = new InMemoryStorage();
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);
-    // performing a get consumes the one time token
-    SecretsManager.getSecrets(options, List.of("AAAAAAAAAAAAAAAAAAAAAA"));
+    consumeOneTimeToken(options);
 
     ObjectNode config = new ObjectMapper().createObjectNode();
     CONFIG_KEYS.forEach(key -> config.put(key, inMemoryStorage.getString(key)));
@@ -194,6 +202,18 @@ public class KeeperKsmAutoConfiguration {
     String message = "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
     LOGGER.atInfo().log(message);
     throw new OneTimeTokenConsumedException(message);
+  }
+
+  /**
+   * Consumes the one-time token by calling the Keeper SDK with a dummy record
+   * UID. This triggers token consumption without downloading any actual
+   * secrets. If the SDK adds a dedicated token-consumption method, this should
+   * be replaced.
+   */
+  private void consumeOneTimeToken(SecretsManagerOptions options) {
+    // Performing a get consumes the one-time token. Using a dummy UID avoids
+    // transferring any real secret data.
+    SecretsManager.getSecrets(options, List.of(DUMMY_RECORD_UID));
   }
 
   private void saveRawConfigToFile(ObjectNode config, KeeperKsmProperties props) {
