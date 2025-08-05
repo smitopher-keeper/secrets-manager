@@ -22,11 +22,27 @@ class Il5ComplianceValidator implements InitializingBean {
   private final KeeperKsmProperties properties;
   private final Environment environment;
 
+  /**
+   * Creates a new validator used to check IL5 compliance.
+   *
+   * @param properties configuration properties that include IL5 enforcement flags
+   * @param environment Spring environment used to look up override properties
+   */
   Il5ComplianceValidator(KeeperKsmProperties properties, Environment environment) {
     this.properties = properties;
     this.environment = environment;
   }
 
+  /**
+   * Verifies IL5 compliance after all properties are set. When enforcement is enabled, this
+   * method ensures that a FIPS-certified crypto provider is present and that audit logging is
+   * enabled at the INFO level or higher with a secure sink. Checks can be downgraded to warnings by
+   * setting the {@code crypto.check.mode} or {@code audit.check.mode} environment properties to
+   * {@code warn}.
+   *
+   * @throws IllegalStateException if any IL5 requirement is not satisfied and the corresponding
+   *     check mode is not set to {@code warn}
+   */
   @Override
   public void afterPropertiesSet() {
     if (!properties.isEnforceIl5()) {
