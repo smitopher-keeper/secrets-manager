@@ -207,7 +207,7 @@ public class KeeperKsmAutoConfiguration {
       throw new IllegalStateException(message);
     }
     PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
-    properties.setPkcs11Library(pkcs11.getLibraryPath());
+    properties.setPkcs11Library(pkcs11.libraryPath());
   }
 
   /**
