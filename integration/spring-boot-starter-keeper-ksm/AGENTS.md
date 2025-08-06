@@ -38,3 +38,5 @@ switch (agentType) {
 
 - If a new class only has an implicit constructor (i.e., none defined), **add an explicit constructor with Javadoc**.
 - **Always document new classes and methods** with meaningful Javadoc, unless explicitly told not to.
+
+- Ensure the `examples/spring-boot` project stays in sync with this starter.
