@@ -18,7 +18,7 @@ class Il5EnforcementTest {
         contextRunner
                 .withPropertyValues(
                         "keeper.ksm.enforce-il5=true",
-                        "keeper.ksm.container-type=sun_pkcs11")
+                        "keeper.ksm.provider-type=sun_pkcs11")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
 
@@ -27,7 +27,7 @@ class Il5EnforcementTest {
         contextRunner
                 .withPropertyValues(
                         "keeper.ksm.enforce-il5=true",
-                        "keeper.ksm.container-type=sun_pkcs11",
+                        "keeper.ksm.provider-type=sun_pkcs11",
                         "keeper.ksm.hsm-provider=softHsm2")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
@@ -39,7 +39,7 @@ class Il5EnforcementTest {
             contextRunner
                     .withPropertyValues(
                             "keeper.ksm.enforce-il5=true",
-                            "keeper.ksm.container-type=sun_pkcs11",
+                            "keeper.ksm.provider-type=sun_pkcs11",
                             "keeper.ksm.hsm-provider=awsCloudHsm")
                     .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
         } finally {
@@ -61,7 +61,7 @@ class Il5EnforcementTest {
         contextRunner
                 .withPropertyValues(
                         "keeper.ksm.enforce-il5=true",
-                        "keeper.ksm.container-type=sun_pkcs11",
+                        "keeper.ksm.provider-type=sun_pkcs11",
                         "keeper.ksm.hsm-provider=awsCloudHsm",
                         "bootstrap.check.mode=warn",
                         "crypto.check.mode=warn",

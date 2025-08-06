@@ -13,7 +13,7 @@ class Il5ComplianceValidatorTest {
             .withUserConfiguration(KeeperKsmAutoConfiguration.class)
             .withPropertyValues(
                     "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
-                    "keeper.ksm.container-type=sun_pkcs11",
+                    "keeper.ksm.provider-type=sun_pkcs11",
                     "keeper.ksm.hsm-provider=awsCloudHsm",
                     "audit.check.mode=warn");
 
