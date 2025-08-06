@@ -14,22 +14,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Loads Keeper Secrets Manager records and exposes them as Spring configuration
  * properties.
  */
 @ConditionalOnClass(SecretsManager.class)
+@Slf4j
 public class KsmPropertySourceLocator implements PropertySourceLocator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(KsmPropertySourceLocator.class);
 
   private final SecretsManagerOptions options;
   private final KeeperKsmProperties properties;
@@ -114,7 +112,7 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
       }
       return val != null ? val.toString() : null;
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      LOGGER.warn("Failed to extract value from field {}", field, e);
+      log.warn("Failed to extract value from field {}", field, e);
       return null;
     }
   }

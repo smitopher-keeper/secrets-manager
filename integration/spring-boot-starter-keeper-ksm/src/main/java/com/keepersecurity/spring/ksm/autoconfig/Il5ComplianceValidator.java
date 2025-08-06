@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
+import lombok.extern.slf4j.Slf4j;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -15,9 +16,8 @@ import ch.qos.logback.core.FileAppender;
 /**
  * Validates that a FIPS-certified crypto provider is active when IL5 enforcement is enabled.
  */
+@Slf4j
 class Il5ComplianceValidator implements InitializingBean {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(Il5ComplianceValidator.class);
 
   private final KeeperKsmProperties properties;
   private final Environment environment;
@@ -55,9 +55,9 @@ class Il5ComplianceValidator implements InitializingBean {
     if (!fipsPresent) {
       String message = "No FIPS-certified crypto provider (e.g. BCFIPS) is active. IL5 mode requires FIPS-compliant crypto.";
       if ("warn".equalsIgnoreCase(environment.getProperty("crypto.check.mode"))) {
-        LOGGER.atWarn().log(message);
+        log.atWarn().log(message);
       } else {
-        LOGGER.atError().log(message);
+        log.atError().log(message);
         throw new IllegalStateException(message);
       }
     }
@@ -72,9 +72,9 @@ class Il5ComplianceValidator implements InitializingBean {
       String message =
           "Audit logger level for 'com.keepersecurity' or 'com.keepersecurity.ksm' must be set to INFO or higher.";
       if (warn) {
-        LOGGER.atWarn().log(message);
+        log.atWarn().log(message);
       } else {
-        LOGGER.atError().log(message);
+        log.atError().log(message);
         throw new IllegalStateException(message);
       }
     }
@@ -86,9 +86,9 @@ class Il5ComplianceValidator implements InitializingBean {
       String message =
           "Audit logging not detected. IL5 enforcement requires audit visibility.";
       if (warn) {
-        LOGGER.atWarn().log(message);
+        log.atWarn().log(message);
       } else {
-        LOGGER.atError().log(message);
+        log.atError().log(message);
         throw new IllegalStateException(message);
       }
     }

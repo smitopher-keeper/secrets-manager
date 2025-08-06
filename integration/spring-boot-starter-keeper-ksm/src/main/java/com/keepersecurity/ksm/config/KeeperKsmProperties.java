@@ -1,11 +1,13 @@
 package com.keepersecurity.ksm.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Configuration properties for Keeper Secrets Manager integration.
  */
 @ConfigurationProperties(prefix = "keeper.ksm")
+@Slf4j
 public class KeeperKsmProperties {
 
   private boolean enforceIl5 = false;
