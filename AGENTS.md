@@ -23,4 +23,3 @@ The repository is organized into:
 This branch focuses on development of the `integration/spring-boot-starter-keeper-ksm`
 integration and the `examples/spring-boot` example. Keep the example consistent
 with the starter.
-
