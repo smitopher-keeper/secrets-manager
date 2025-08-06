@@ -32,8 +32,7 @@ public class KeeperKsmProperties {
   /**
    * Creates a new {@code KeeperKsmProperties} instance with default settings.
    */
-  public KeeperKsmProperties() {
-  }
+  public KeeperKsmProperties() {}
 
   /**
    * Cache-related configuration options.
@@ -52,17 +51,15 @@ public class KeeperKsmProperties {
     private boolean persist = true;
 
     /**
-     * If true, expired secrets may still be returned from cache
-     * when the KSM service is unreachable.
-     * Default is false — expired secrets will cause a failure.
+     * If true, expired secrets may still be returned from cache when the KSM service is
+     * unreachable. Default is false — expired secrets will cause a failure.
      */
     private boolean allowStaleIfOffline = false;
 
     /**
      * Private constructor to prevent external instantiation.
      */
-    private Cache() {
-    }
+    private Cache() {}
 
   }
 
@@ -90,8 +87,7 @@ public class KeeperKsmProperties {
     /**
      * Private constructor to prevent external instantiation.
      */
-    private Config() {
-    }
+    private Config() {}
 
   }
 }

@@ -37,7 +37,7 @@ record KsmRecordResolver(SecretsManagerOptions options) {
    * @param folders folder list retrieved via {@link #loadAllFolders()}
    * @return the UID of the resolved record
    * @throws IllegalArgumentException if the specifier is malformed, the folder cannot be found or
-   *     the record title does not exist within the folder
+   *         the record title does not exist within the folder
    */
   String resolve(String spec, KeeperSecrets allSecrets, List<KeeperFolder> folders) {
     if (isUid(spec)) {
@@ -49,17 +49,12 @@ record KsmRecordResolver(SecretsManagerOptions options) {
     }
     String folderName = spec.substring(0, idx);
     String title = spec.substring(idx + 1);
-    String folderUid = folders.stream()
-        .filter(f -> folderName.equals(f.getName()))
-        .map(KeeperFolder::getFolderUid)
-        .findFirst()
-        .orElseThrow(() ->
-            new IllegalArgumentException("Folder not found: " + folderName));
+    String folderUid = folders.stream().filter(f -> folderName.equals(f.getName()))
+        .map(KeeperFolder::getFolderUid).findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Folder not found: " + folderName));
     return allSecrets.getRecords().stream()
         .filter(r -> folderUid.equals(r.getFolderUid()) && title.equals(r.getData().getTitle()))
-        .map(KeeperRecord::getRecordUid)
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .map(KeeperRecord::getRecordUid).findFirst().orElseThrow(() -> new IllegalArgumentException(
             "Record '" + title + "' not found in folder '" + folderName + "'"));
   }
 

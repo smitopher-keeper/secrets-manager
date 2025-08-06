@@ -25,31 +25,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class KsmPropertySourceLocatorTest {
 
-    @Test
-    void loadsRecordAsProperties() throws Exception {
-        String config = Files.readString(Path.of("src/test/resources/starter-ksm-config.json"));
-        SecretsManagerOptions options = new SecretsManagerOptions(new InMemoryStorage(config));
+  @Test
+  void loadsRecordAsProperties() throws Exception {
+    String config = Files.readString(Path.of("src/test/resources/starter-ksm-config.json"));
+    SecretsManagerOptions options = new SecretsManagerOptions(new InMemoryStorage(config));
 
-        String recordUid = "AAAAAAAAAAAAAAAAAAAAAA";
-        var ctor = KeeperKsmProperties.class.getDeclaredConstructor();
-        ctor.setAccessible(true);
-        KeeperKsmProperties props = ctor.newInstance();
-        props.setRecords(List.of(recordUid));
+    String recordUid = "AAAAAAAAAAAAAAAAAAAAAA";
+    var ctor = KeeperKsmProperties.class.getDeclaredConstructor();
+    ctor.setAccessible(true);
+    KeeperKsmProperties props = ctor.newInstance();
+    props.setRecords(List.of(recordUid));
 
-        Password password = new Password(List.of("my-secret"));
-        KeeperRecordData data = new KeeperRecordData("Test Record", "login", List.of((KeeperRecordField) password), null, null);
-        KeeperRecord record = new KeeperRecord(new byte[0], recordUid, null, null, null, data, 0L, List.of());
-        KeeperSecrets secrets = new KeeperSecrets(new AppData("app", "type"), List.of(record), Instant.now(), List.of());
+    Password password = new Password(List.of("my-secret"));
+    KeeperRecordData data = new KeeperRecordData("Test Record", "login",
+        List.of((KeeperRecordField) password), null, null);
+    KeeperRecord record =
+        new KeeperRecord(new byte[0], recordUid, null, null, null, data, 0L, List.of());
+    KeeperSecrets secrets =
+        new KeeperSecrets(new AppData("app", "type"), List.of(record), Instant.now(), List.of());
 
-        try (MockedStatic<SecretsManager> sm = Mockito.mockStatic(SecretsManager.class)) {
-            sm.when(() -> SecretsManager.getSecrets(Mockito.any(SecretsManagerOptions.class), Mockito.anyList()))
-              .thenReturn(secrets);
+    try (MockedStatic<SecretsManager> sm = Mockito.mockStatic(SecretsManager.class)) {
+      sm.when(() -> SecretsManager.getSecrets(Mockito.any(SecretsManagerOptions.class),
+          Mockito.anyList())).thenReturn(secrets);
 
-            KsmPropertySourceLocator locator = new KsmPropertySourceLocator(options, props);
-            PropertySource<?> ps = locator.locate(new MockEnvironment());
+      KsmPropertySourceLocator locator = new KsmPropertySourceLocator(options, props);
+      PropertySource<?> ps = locator.locate(new MockEnvironment());
 
-            assertEquals("my-secret", ps.getProperty("keeper://" + recordUid + "/field/password"));
-            assertEquals("Test Record", ps.getProperty("keeper://" + recordUid + "/title"));
-        }
+      assertEquals("my-secret", ps.getProperty("keeper://" + recordUid + "/field/password"));
+      assertEquals("Test Record", ps.getProperty("keeper://" + recordUid + "/title"));
     }
+  }
 }

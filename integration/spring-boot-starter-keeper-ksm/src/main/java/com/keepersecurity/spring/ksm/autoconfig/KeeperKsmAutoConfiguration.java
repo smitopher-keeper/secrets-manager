@@ -17,7 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -44,54 +43,43 @@ import lombok.extern.slf4j.Slf4j;
  * Spring Boot auto-configuration for Keeper Secrets Manager.
  * <p>
  * This configuration class registers a {@link SecretsManagerOptions} bean based on
- * {@link KeeperKsmProperties}. It supports initialisation from a one-time token
- * as well as loading an existing JSON configuration file.
- * The {@code keeper.ksm.hsm-provider} property chooses the backing HSM. When
- * set to {@code SOFT_HSM2} the auto-configuration locates the SoftHSM2
- * library and wires it into the {@link SecretsManager} SDK. If IL5 enforcement
- * ({@code keeper.ksm.enforce-il5}) is enabled while using the emulator the
- * application fails fast.
+ * {@link KeeperKsmProperties}. It supports initialisation from a one-time token as well as loading
+ * an existing JSON configuration file. The {@code keeper.ksm.hsm-provider} property chooses the
+ * backing HSM. When set to {@code SOFT_HSM2} the auto-configuration locates the SoftHSM2 library
+ * and wires it into the {@link SecretsManager} SDK. If IL5 enforcement
+ * ({@code keeper.ksm.enforce-il5}) is enabled while using the emulator the application fails fast.
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
 @EnableConfigurationProperties({KeeperKsmProperties.class,
-    com.keepersecurity.ksm.config.KeeperKsmProperties.class}) // Enable binding of KeeperKsmProperties
+    com.keepersecurity.ksm.config.KeeperKsmProperties.class}) // Enable binding of
+                                                              // KeeperKsmProperties
 @Slf4j
 public class KeeperKsmAutoConfiguration {
 
   private static final List<String> CONFIG_KEYS;
 
   /**
-   * UID of a non-existent record used solely to trigger one-time token
-   * consumption. The Keeper SDK currently consumes a token on the first
-   * record retrieval. Requesting this dummy record ensures the token is
-   * consumed without pulling any real data. Replace this once the SDK exposes
-   * a dedicated token consumption API.
+   * UID of a non-existent record used solely to trigger one-time token consumption. The Keeper SDK
+   * currently consumes a token on the first record retrieval. Requesting this dummy record ensures
+   * the token is consumed without pulling any real data. Replace this once the SDK exposes a
+   * dedicated token consumption API.
    */
   private static final String DUMMY_RECORD_UID = "AAAAAAAAAAAAAAAAAAAAAA";
 
   static {
-    CONFIG_KEYS = List.of(KEY_HOSTNAME,
-        KEY_CLIENT_ID,
-        KEY_PRIVATE_KEY,
-        KEY_CLIENT_KEY,
-        KEY_APP_KEY,
-        KEY_OWNER_PUBLIC_KEY,
-        KEY_PUBLIC_KEY,
-        KEY_SERVER_PUBIC_KEY_ID);
+    CONFIG_KEYS = List.of(KEY_HOSTNAME, KEY_CLIENT_ID, KEY_PRIVATE_KEY, KEY_CLIENT_KEY, KEY_APP_KEY,
+        KEY_OWNER_PUBLIC_KEY, KEY_PUBLIC_KEY, KEY_SERVER_PUBIC_KEY_ID);
   }
 
   // package-private constructor required for Spring Boot
-  KeeperKsmAutoConfiguration() {
-  }
+  KeeperKsmAutoConfiguration() {}
 
   /**
    * Provides the {@code ConfigStorage} used for caching secrets. When
-   * {@code keeper.ksm.cache.persist} is {@code true} a
-   * {@link LocalConfigStorage} pointing to the configured
-   * {@code keeper.ksm.cache.path} is returned. Otherwise an in-memory
-   * implementation is used. Applications may override this by declaring their
-   * own {@code ConfigStorage} bean.
+   * {@code keeper.ksm.cache.persist} is {@code true} a {@link LocalConfigStorage} pointing to the
+   * configured {@code keeper.ksm.cache.path} is returned. Otherwise an in-memory implementation is
+   * used. Applications may override this by declaring their own {@code ConfigStorage} bean.
    *
    * @return cache storage implementation
    */
@@ -114,39 +102,39 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
-   * Creates a {@link SecretsManagerOptions} bean based on the supplied
-   * {@link KeeperKsmProperties}. If a one-time token is configured it will be
-   * consumed to initialise the local configuration before the application exits.
-   * Otherwise the existing configuration is loaded from the configured location.
-   * When the {@code hsm-provider} property is {@code SOFT_HSM2} the SoftHSM2
-   * library is auto-detected and wired to the SDK. If IL5 enforcement is enabled
-   * while using the emulator an {@link IllegalStateException} is thrown to fail
-   * fast.
+   * Creates a {@link SecretsManagerOptions} bean based on the supplied {@link KeeperKsmProperties}.
+   * If a one-time token is configured it will be consumed to initialise the local configuration
+   * before the application exits. Otherwise the existing configuration is loaded from the
+   * configured location. When the {@code hsm-provider} property is {@code SOFT_HSM2} the SoftHSM2
+   * library is auto-detected and wired to the SDK. If IL5 enforcement is enabled while using the
+   * emulator an {@link IllegalStateException} is thrown to fail fast.
    *
-   * <p>The {@code keeper.ksm.cache.enabled} property controls whether the Keeper SDK
-   * caches secrets in memory. Caching is enabled by default to improve
-   * performance for repeated secret access. The accompanying property
-   * {@code keeper.ksm.cache.persist} toggles persistent storage via
-   * {@link LocalConfigStorage}, storing encrypted cache data on disk.</p>
+   * <p>
+   * The {@code keeper.ksm.cache.enabled} property controls whether the Keeper SDK caches secrets in
+   * memory. Caching is enabled by default to improve performance for repeated secret access. The
+   * accompanying property {@code keeper.ksm.cache.persist} toggles persistent storage via
+   * {@link LocalConfigStorage}, storing encrypted cache data on disk.
+   * </p>
    *
    * @param properties bound Keeper configuration properties
    * @param environment Spring environment used for bootstrap checks
    * @param configStorage storage backend for cached secrets
    * @return a fully configured {@link SecretsManagerOptions} instance
-   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a
-   *     one-time token is provided while IL5 is enforced
+   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a one-time token is
+   *         provided while IL5 is enforced
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
-  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties, Environment environment,
-      KeyValueStorage configStorage) {
+  SecretsManagerOptions secretsManagerOptions(KeeperKsmProperties properties,
+      Environment environment, KeyValueStorage configStorage) {
     if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
       softhms2Provider(properties);
     }
     if (properties.isEnforceIl5()) {
       enforceIl5(properties, environment);
     }
-    Optional.ofNullable(properties.getOneTimeToken()).ifPresent(path -> consumeToken(path, properties));
+    Optional.ofNullable(properties.getOneTimeToken())
+        .ifPresent(path -> consumeToken(path, properties));
 
     KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
     SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
@@ -157,14 +145,15 @@ public class KeeperKsmAutoConfiguration {
       log.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
     }
     try {
-      options.getClass().getMethod("setCacheTtl", Duration.class)
-          .invoke(options, properties.getCache().getTtl());
+      options.getClass().getMethod("setCacheTtl", Duration.class).invoke(options,
+          properties.getCache().getTtl());
     } catch (ReflectiveOperationException e) {
-      log.atDebug().setCause(e).log("SecretsManagerOptions does not support cache TTL configuration");
+      log.atDebug().setCause(e)
+          .log("SecretsManagerOptions does not support cache TTL configuration");
     }
     try {
-      options.getClass().getMethod("setAllowStaleCacheOnFailure", boolean.class)
-          .invoke(options, properties.getCache().isAllowStaleIfOffline());
+      options.getClass().getMethod("setAllowStaleCacheOnFailure", boolean.class).invoke(options,
+          properties.getCache().isAllowStaleIfOffline());
     } catch (ReflectiveOperationException e) {
       log.atDebug().setCause(e)
           .log("SecretsManagerOptions does not support stale cache failover configuration");
@@ -178,18 +167,17 @@ public class KeeperKsmAutoConfiguration {
       }
       options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
     } catch (ReflectiveOperationException e) {
-      log.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
+      log.atDebug().setCause(e)
+          .log("SecretsManagerOptions does not support persistent storage configuration");
     }
     return options;
   }
 
   private void enforceIl5(KeeperKsmProperties properties, Environment environment) {
     String ott = environment.getProperty("ksm.config.ott-token");
-    boolean tokenProvided = properties.getOneTimeToken() != null
-        || (ott != null && !ott.isBlank());
+    boolean tokenProvided = properties.getOneTimeToken() != null || (ott != null && !ott.isBlank());
     if (tokenProvided) {
-      String message =
-          "One-time-token config bootstrapping is disabled under IL5 enforcement.";
+      String message = "One-time-token config bootstrapping is disabled under IL5 enforcement.";
       if ("warn".equalsIgnoreCase(environment.getProperty("bootstrap.check.mode"))) {
         log.atWarn().log(message);
       } else {
@@ -210,14 +198,15 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
-   * Provides a validator that enforces IL - 5 compliance rules at start-up.
+   * Provides a validator that enforces IL - 5 compliance rules at start-up.
    *
    * @param properties bound configuration properties
    * @param environment Spring environment used to check override flags
-   * @return a validator that performs IL - 5 checks after initialization
+   * @return a validator that performs IL - 5 checks after initialization
    */
   @Bean
-  Il5ComplianceValidator il5ComplianceValidator(KeeperKsmProperties properties, Environment environment) {
+  Il5ComplianceValidator il5ComplianceValidator(KeeperKsmProperties properties,
+      Environment environment) {
     return new Il5ComplianceValidator(properties, environment);
   }
 
@@ -259,7 +248,8 @@ public class KeeperKsmAutoConfiguration {
       case AZURE_HSM -> AzureHsmSaver.save(config, props);
       case FORTANIX -> FortanixSaver.save(config, props);
       case HSM -> HsmSaver.save(config, props);
-      default -> throw new IllegalArgumentException("Unexpected or unimplemented provider: " + providerType);
+      default -> throw new IllegalArgumentException(
+          "Unexpected or unimplemented provider: " + providerType);
     }
 
     try {
@@ -268,16 +258,16 @@ public class KeeperKsmAutoConfiguration {
       log.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
     }
 
-    String message = "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
+    String message =
+        "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
     log.atInfo().log(message);
     throw new OneTimeTokenConsumedException(message);
   }
 
   /**
-   * Consumes the one-time token by calling the Keeper SDK with a dummy record
-   * UID. This triggers token consumption without downloading any actual
-   * secrets. If the SDK adds a dedicated token-consumption method, this should
-   * be replaced.
+   * Consumes the one-time token by calling the Keeper SDK with a dummy record UID. This triggers
+   * token consumption without downloading any actual secrets. If the SDK adds a dedicated
+   * token-consumption method, this should be replaced.
    */
   private void consumeOneTimeToken(SecretsManagerOptions options) {
     // Performing a get consumes the one-time token. Using a dummy UID avoids
@@ -346,12 +336,14 @@ public class KeeperKsmAutoConfiguration {
         ks.load(null, null);
       }
 
-      SecretKeySpec secret = new SecretKeySpec(config.toString().getBytes(StandardCharsets.UTF_8), "RAW");
+      SecretKeySpec secret =
+          new SecretKeySpec(config.toString().getBytes(StandardCharsets.UTF_8), "RAW");
       KeyStore.SecretKeyEntry entry = new KeyStore.SecretKeyEntry(secret);
       KeyStore.PasswordProtection protection = new KeyStore.PasswordProtection(password);
       ks.setEntry(props.getSecretUser(), entry, protection);
 
-      try (OutputStream out = Files.newOutputStream(keystorePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      try (OutputStream out = Files.newOutputStream(keystorePath, StandardOpenOption.CREATE,
+          StandardOpenOption.TRUNCATE_EXISTING)) {
         ks.store(out, password);
       }
     } catch (IOException | GeneralSecurityException | ReflectiveOperationException e) {
@@ -370,20 +362,17 @@ public class KeeperKsmAutoConfiguration {
             software.amazon.awssdk.services.secretsmanager.SecretsManagerClient.builder().build();
         String id = props.getSecretPath().toString();
         try {
-          client.createSecret(software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest
-              .builder()
-              .name(id)
-              .secretString(config.toString())
-              .build());
+          client
+              .createSecret(software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest
+                  .builder().name(id).secretString(config.toString()).build());
         } catch (software.amazon.awssdk.services.secretsmanager.model.ResourceExistsException e) {
-          client.putSecretValue(software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest
-              .builder()
-              .secretId(id)
-              .secretString(config.toString())
-              .build());
+          client.putSecretValue(
+              software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest.builder()
+                  .secretId(id).secretString(config.toString()).build());
         }
       } catch (Exception e) {
-        throw new IllegalStateException("Failed to persist the KMS Config to AWS Secrets Manager", e);
+        throw new IllegalStateException("Failed to persist the KMS Config to AWS Secrets Manager",
+            e);
       }
     }
   }
@@ -413,26 +402,20 @@ public class KeeperKsmAutoConfiguration {
         com.google.cloud.secretmanager.v1.SecretName name =
             com.google.cloud.secretmanager.v1.SecretName.parse(secretId);
         try {
-          client.createSecret(
-              com.google.cloud.secretmanager.v1.CreateSecretRequest.newBuilder()
-                  .setParent(name.getProject())
-                  .setSecretId(name.getSecret())
-                  .setSecret(com.google.cloud.secretmanager.v1.Secret.newBuilder().build())
-                  .build());
+          client.createSecret(com.google.cloud.secretmanager.v1.CreateSecretRequest.newBuilder()
+              .setParent(name.getProject()).setSecretId(name.getSecret())
+              .setSecret(com.google.cloud.secretmanager.v1.Secret.newBuilder().build()).build());
         } catch (com.google.api.gax.rpc.AlreadyExistsException ignore) {
           // secret already exists
         }
         com.google.cloud.secretmanager.v1.SecretPayload payload =
             com.google.cloud.secretmanager.v1.SecretPayload.newBuilder()
-                .setData(com.google.protobuf.ByteString.copyFromUtf8(config.toString()))
-                .build();
-        client.addSecretVersion(
-            com.google.cloud.secretmanager.v1.AddSecretVersionRequest.newBuilder()
-                .setParent(name.toString())
-                .setPayload(payload)
-                .build());
+                .setData(com.google.protobuf.ByteString.copyFromUtf8(config.toString())).build();
+        client.addSecretVersion(com.google.cloud.secretmanager.v1.AddSecretVersionRequest
+            .newBuilder().setParent(name.toString()).setPayload(payload).build());
       } catch (Exception e) {
-        throw new IllegalStateException("Failed to persist the KMS Config to Google Secret Manager", e);
+        throw new IllegalStateException("Failed to persist the KMS Config to Google Secret Manager",
+            e);
       }
     }
   }

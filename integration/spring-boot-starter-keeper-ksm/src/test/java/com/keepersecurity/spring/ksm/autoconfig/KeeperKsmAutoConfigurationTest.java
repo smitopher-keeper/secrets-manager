@@ -12,13 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
     properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
 class KeeperKsmAutoConfigurationTest {
 
-    @Autowired
-    private SecretsManagerOptions options;
+  @Autowired
+  private SecretsManagerOptions options;
 
-    @Test
-    void contextLoads() {
-        assertNotNull(options, "SecretsManagerOptions bean should be initialized");
-        String clientId = options.getStorage().getString("clientId");
-        assertEquals("client-id", clientId, "clientId should be loaded from config file");
-    }
+  @Test
+  void contextLoads() {
+    assertNotNull(options, "SecretsManagerOptions bean should be initialized");
+    String clientId = options.getStorage().getString("clientId");
+    assertEquals("client-id", clientId, "clientId should be loaded from config file");
+  }
 }

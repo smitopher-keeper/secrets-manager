@@ -8,7 +8,6 @@ import com.keepersecurity.secretsManager.core.Notation;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 import com.keepersecurity.spring.ksm.autoconfig.KeeperKsmProperties;
-import com.keepersecurity.spring.ksm.config.KsmRecordResolver;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +21,7 @@ import org.springframework.core.env.PropertySource;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Loads Keeper Secrets Manager records and exposes them as Spring configuration
- * properties.
+ * Loads Keeper Secrets Manager records and exposes them as Spring configuration properties.
  */
 @ConditionalOnClass(SecretsManager.class)
 @Slf4j
@@ -47,12 +45,11 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
 
   @Override
   /**
-   * Loads Keeper records defined in {@link KeeperKsmProperties#getRecords()} and
-   * exposes them as a {@link PropertySource}.
+   * Loads Keeper records defined in {@link KeeperKsmProperties#getRecords()} and exposes them as a
+   * {@link PropertySource}.
    *
    * @param environment the current Spring environment
-   * @return a property source containing record fields or {@code null} if no
-   *     records are configured
+   * @return a property source containing record fields or {@code null} if no records are configured
    */
   public PropertySource<?> locate(Environment environment) {
     List<String> specs = properties.getRecords();
@@ -75,27 +72,27 @@ public class KsmPropertySourceLocator implements PropertySourceLocator {
     }
     KeeperSecrets secrets = SecretsManager.getSecrets(options, recordIds);
     Map<String, Object> flat = new HashMap<>();
-    for (KeeperRecord record : secrets.getRecords()) {
-      flattenRecord(record, flat);
+    for (KeeperRecord kRrecord : secrets.getRecords()) {
+      flattenRecord(kRrecord, flat);
     }
     return new MapPropertySource("keeperKsm", flat);
   }
 
-  private void flattenRecord(KeeperRecord record, Map<String, Object> flat) {
-    String prefix = "keeper://" + record.getRecordUid();
-    flat.put(prefix + "/title", record.getData().getTitle());
-    flat.put(prefix + "/type", record.getData().getType());
-    if (record.getData().getNotes() != null) {
-      flat.put(prefix + "/notes", record.getData().getNotes());
+  private void flattenRecord(KeeperRecord kRrecord, Map<String, Object> flat) {
+    String prefix = "keeper://" + kRrecord.getRecordUid();
+    flat.put(prefix + "/title", kRrecord.getData().getTitle());
+    flat.put(prefix + "/type", kRrecord.getData().getType());
+    if (kRrecord.getData().getNotes() != null) {
+      flat.put(prefix + "/notes", kRrecord.getData().getNotes());
     }
-    record.getData().getFields().forEach(f -> addField(prefix, "field", f, flat));
-    if (record.getData().getCustom() != null) {
-      record.getData().getCustom().forEach(f -> addField(prefix, "custom_field", f, flat));
+    kRrecord.getData().getFields().forEach(f -> addField(prefix, "field", f, flat));
+    if (kRrecord.getData().getCustom() != null) {
+      kRrecord.getData().getCustom().forEach(f -> addField(prefix, "custom_field", f, flat));
     }
   }
 
-  private void addField(
-      String prefix, String selector, KeeperRecordField field, Map<String, Object> flat) {
+  private void addField(String prefix, String selector, KeeperRecordField field,
+      Map<String, Object> flat) {
     String type = Notation.fieldType(field);
     String label = field.getLabel();
     String name = (label != null && !label.isBlank()) ? label : type;

@@ -9,21 +9,19 @@ import java.security.Security;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
-    properties = {
-        "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
-        "keeper.ksm.provider-class=com.keepersecurity.spring.ksm.autoconfig.TestBcProvider"
-    })
+    properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
+        "keeper.ksm.provider-class=com.keepersecurity.spring.ksm.autoconfig.TestBcProvider"})
 class ProviderSelectionTest {
 
-    @AfterEach
-    void cleanup() {
-        Security.removeProvider("BC");
-    }
+  @AfterEach
+  void cleanup() {
+    Security.removeProvider("BC");
+  }
 
-    @Test
-    void bcProviderSelected() {
-        Security.addProvider(new TestBcProvider());
-        assertNotNull(Security.getProvider("BC"), "BC provider should be registered");
-    }
+  @Test
+  void bcProviderSelected() {
+    Security.addProvider(new TestBcProvider());
+    assertNotNull(Security.getProvider("BC"), "BC provider should be registered");
+  }
 
 }

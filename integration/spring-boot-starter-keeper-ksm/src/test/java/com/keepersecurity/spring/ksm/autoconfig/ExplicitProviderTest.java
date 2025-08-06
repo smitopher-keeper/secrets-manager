@@ -9,18 +9,16 @@ import java.security.Security;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
-    properties = {
-        "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"
-})
+    properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
 class ExplicitProviderTest {
 
-    @AfterEach
-    void cleanup() {
-        Security.removeProvider("BC");
-    }
+  @AfterEach
+  void cleanup() {
+    Security.removeProvider("BC");
+  }
 
-    @Test
-    void bcProviderSelected() {
-        assertNotNull(Security.getProviders(), "Security providers should be available");
-    }
+  @Test
+  void bcProviderSelected() {
+    assertNotNull(Security.getProviders(), "Security providers should be available");
+  }
 }

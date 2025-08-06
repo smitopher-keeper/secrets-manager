@@ -34,26 +34,25 @@ class Il5ComplianceValidator implements InitializingBean {
   }
 
   /**
-   * Verifies IL5 compliance after all properties are set. When enforcement is enabled, this
-   * method ensures that a FIPS-certified crypto provider is present and that audit logging is
-   * enabled at the INFO level or higher with a secure sink. Checks can be downgraded to warnings by
-   * setting the {@code crypto.check.mode} or {@code audit.check.mode} environment properties to
+   * Verifies IL5 compliance after all properties are set. When enforcement is enabled, this method
+   * ensures that a FIPS-certified crypto provider is present and that audit logging is enabled at
+   * the INFO level or higher with a secure sink. Checks can be downgraded to warnings by setting
+   * the {@code crypto.check.mode} or {@code audit.check.mode} environment properties to
    * {@code warn}.
    *
    * @throws IllegalStateException if any IL5 requirement is not satisfied and the corresponding
-   *     check mode is not set to {@code warn}
+   *         check mode is not set to {@code warn}
    */
   @Override
   public void afterPropertiesSet() {
     if (!properties.isEnforceIl5()) {
       return;
     }
-    boolean fipsPresent = Arrays.stream(Security.getProviders())
-        .map(Provider::getName)
-        .map(String::toUpperCase)
-        .anyMatch(name -> name.contains("FIPS"));
+    boolean fipsPresent = Arrays.stream(Security.getProviders()).map(Provider::getName)
+        .map(String::toUpperCase).anyMatch(name -> name.contains("FIPS"));
     if (!fipsPresent) {
-      String message = "No FIPS-certified crypto provider (e.g. BCFIPS) is active. IL5 mode requires FIPS-compliant crypto.";
+      String message =
+          "No FIPS-certified crypto provider (e.g. BCFIPS) is active. IL5 mode requires FIPS-compliant crypto.";
       if ("warn".equalsIgnoreCase(environment.getProperty("crypto.check.mode"))) {
         log.atWarn().log(message);
       } else {
@@ -83,8 +82,7 @@ class Il5ComplianceValidator implements InitializingBean {
     boolean sinkPresent = hasSecureAppender(baseLogger) || hasSecureAppender(ksmLogger)
         || hasSecureAppender(rootLogger);
     if (!sinkPresent) {
-      String message =
-          "Audit logging not detected. IL5 enforcement requires audit visibility.";
+      String message = "Audit logging not detected. IL5 enforcement requires audit visibility.";
       if (warn) {
         log.atWarn().log(message);
       } else {
@@ -103,7 +101,8 @@ class Il5ComplianceValidator implements InitializingBean {
 
   private boolean hasSecureAppender(Logger logger) {
     if (logger instanceof ch.qos.logback.classic.Logger logback) {
-      for (java.util.Iterator<Appender<ILoggingEvent>> it = logback.iteratorForAppenders(); it.hasNext(); ) {
+      for (java.util.Iterator<Appender<ILoggingEvent>> it = logback.iteratorForAppenders(); it
+          .hasNext();) {
         Appender<ILoggingEvent> appender = it.next();
         if (appender instanceof FileAppender) {
           return true;
