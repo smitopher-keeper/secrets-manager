@@ -1,6 +1,7 @@
 # Agent Instructions
 
 - Use JDK 21 for all Gradle commands.
+- Format Java code with [Google Java Style](https://google.github.io/styleguide/javaguide.html). Run `google-java-format` before committing.
 - After modifying any files in this directory, run `./gradlew test` from this directory and make sure it succeeds before committing.
 
 ### ✅ Prefer `switch` Over `else-if` Chains
