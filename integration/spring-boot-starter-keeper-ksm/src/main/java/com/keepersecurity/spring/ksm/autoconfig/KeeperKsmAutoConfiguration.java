@@ -147,16 +147,8 @@ public class KeeperKsmAutoConfiguration {
     if (properties.isEnforceIl5()) {
       enforceIl5(properties, environment);
     }
-    Optional.ofNullable(properties.getOneTimeToken()).ifPresent(path -> {
-      try {
-        String token = Files.readString(path);
-        consumeToken(token, path, properties);
-      } catch (IOException e) {
-        String message = "failure loading KMS One Time Token";
-        LOGGER.atError().setCause(e).log(message);
-        throw new IllegalStateException(message, e);
-      }
-    });
+    Optional.ofNullable(properties.getOneTimeToken()).ifPresent(path -> consumeToken(path, properties));
+
     KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
     SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
     boolean cacheEnabled = properties.getCache().isEnabled();
@@ -240,7 +232,16 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private void consumeToken(String token, Path tokenFile, KeeperKsmProperties props) {
+  private void consumeToken(Path tokenFile, KeeperKsmProperties props) {
+    String token;
+    try {
+      token = Files.readString(tokenFile);
+    } catch (IOException e) {
+      String message = "failure loading KMS One Time Token";
+      LOGGER.atError().setCause(e).log(message);
+      throw new IllegalStateException(message, e);
+    }
+
     InMemoryStorage inMemoryStorage = new InMemoryStorage();
     SecretsManager.initializeStorage(inMemoryStorage, token);
     SecretsManagerOptions options = new SecretsManagerOptions(inMemoryStorage);

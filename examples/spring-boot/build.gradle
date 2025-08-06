@@ -15,7 +15,14 @@ java {
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    maven {
+        name = "keeper-central"
+        credentials {
+            username = System.getenv("GH_REPO_USER")
+            password = System.getenv("GH_REPO_TOKEN")
+        }
+        url = uri("https://maven.pkg.github.com/Keeper-Security/keeper-central")
+    }
 }
 
 dependencies {
