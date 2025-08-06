@@ -24,8 +24,6 @@ import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
 import javax.crypto.spec.SecretKeySpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,6 +38,7 @@ import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import com.keepersecurity.secretsManager.core.SecretsManager;
 import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Spring Boot auto-configuration for Keeper Secrets Manager.
@@ -57,10 +56,10 @@ import java.time.Duration;
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
 @EnableConfigurationProperties({KeeperKsmProperties.class,
     com.keepersecurity.ksm.config.KeeperKsmProperties.class}) // Enable binding of KeeperKsmProperties
+@Slf4j
 public class KeeperKsmAutoConfiguration {
 
   private static final List<String> CONFIG_KEYS;
-  private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmAutoConfiguration.class);
 
   /**
    * UID of a non-existent record used solely to trigger one-time token
@@ -155,19 +154,19 @@ public class KeeperKsmAutoConfiguration {
     try {
       options.getClass().getMethod("setAllowCaching", boolean.class).invoke(options, cacheEnabled);
     } catch (ReflectiveOperationException e) {
-      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
+      log.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
     }
     try {
       options.getClass().getMethod("setCacheTtl", Duration.class)
           .invoke(options, properties.getCache().getTtl());
     } catch (ReflectiveOperationException e) {
-      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support cache TTL configuration");
+      log.atDebug().setCause(e).log("SecretsManagerOptions does not support cache TTL configuration");
     }
     try {
       options.getClass().getMethod("setAllowStaleCacheOnFailure", boolean.class)
           .invoke(options, properties.getCache().isAllowStaleIfOffline());
     } catch (ReflectiveOperationException e) {
-      LOGGER.atDebug().setCause(e)
+      log.atDebug().setCause(e)
           .log("SecretsManagerOptions does not support stale cache failover configuration");
     }
     try {
@@ -179,7 +178,7 @@ public class KeeperKsmAutoConfiguration {
       }
       options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
     } catch (ReflectiveOperationException e) {
-      LOGGER.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
+      log.atDebug().setCause(e).log("SecretsManagerOptions does not support persistent storage configuration");
     }
     return options;
   }
@@ -192,9 +191,9 @@ public class KeeperKsmAutoConfiguration {
       String message =
           "One-time-token config bootstrapping is disabled under IL5 enforcement.";
       if ("warn".equalsIgnoreCase(environment.getProperty("bootstrap.check.mode"))) {
-        LOGGER.atWarn().log(message);
+        log.atWarn().log(message);
       } else {
-        LOGGER.atError().log(message);
+        log.atError().log(message);
         throw new IllegalStateException(message);
       }
     }
@@ -203,7 +202,7 @@ public class KeeperKsmAutoConfiguration {
   private void softhms2Provider(KeeperKsmProperties properties) {
     if (properties.isEnforceIl5()) {
       String message = "SoftHSM2 is not IL-5 compliant";
-      LOGGER.atError().log(message);
+      log.atError().log(message);
       throw new IllegalStateException(message);
     }
     PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
@@ -227,7 +226,7 @@ public class KeeperKsmAutoConfiguration {
       return Files.readString(properties.getSecretPath());
     } catch (IOException e) {
       String message = "failure loading KMS Config";
-      LOGGER.atError().setCause(e).log(message);
+      log.atError().setCause(e).log(message);
       throw new IllegalStateException(message, e);
     }
   }
@@ -238,7 +237,7 @@ public class KeeperKsmAutoConfiguration {
       token = Files.readString(tokenFile);
     } catch (IOException e) {
       String message = "failure loading KMS One Time Token";
-      LOGGER.atError().setCause(e).log(message);
+      log.atError().setCause(e).log(message);
       throw new IllegalStateException(message, e);
     }
 
@@ -266,11 +265,11 @@ public class KeeperKsmAutoConfiguration {
     try {
       Files.deleteIfExists(tokenFile);
     } catch (IOException e) {
-      LOGGER.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
+      log.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
     }
 
     String message = "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
-    LOGGER.atInfo().log(message);
+    log.atInfo().log(message);
     throw new OneTimeTokenConsumedException(message);
   }
 
@@ -293,7 +292,7 @@ public class KeeperKsmAutoConfiguration {
       Files.writeString(props.getSecretPath(), config.toString(), StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {
       String message = "Failed to persist the RAW KMS Config";
-      LOGGER.atError().setCause(e).log(message);
+      log.atError().setCause(e).log(message);
       throw new IllegalStateException(message, e);
     }
   }
@@ -311,7 +310,7 @@ public class KeeperKsmAutoConfiguration {
           case "jks" -> "JKS";
           default -> {
             String message = "Unsupported keystore extension: " + ext;
-            LOGGER.atWarn().log(message);
+            log.atWarn().log(message);
             throw new IllegalArgumentException(message);
           }
         };
@@ -319,7 +318,7 @@ public class KeeperKsmAutoConfiguration {
       case HSM, AWS_HSM, AZURE_HSM, FORTANIX -> "PKCS11";
       default -> {
         String message = "Unsupported provider for keystore persistence: " + providerType;
-        LOGGER.atWarn().log(message);
+        log.atWarn().log(message);
         throw new IllegalArgumentException(message);
       }
     };
@@ -357,7 +356,7 @@ public class KeeperKsmAutoConfiguration {
       }
     } catch (IOException | GeneralSecurityException | ReflectiveOperationException e) {
       String message = "Failed to persist the KMS Config keystore";
-      LOGGER.atError().setCause(e).log(message);
+      log.atError().setCause(e).log(message);
       throw new IllegalStateException(message, e);
     }
   }
