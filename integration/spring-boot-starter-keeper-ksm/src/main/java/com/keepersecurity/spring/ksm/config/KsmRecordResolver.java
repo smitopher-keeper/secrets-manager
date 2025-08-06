@@ -10,22 +10,12 @@ import java.util.regex.Pattern;
 
 /**
  * Utility class to resolve record specifiers to UIDs.
+ *
+ * @param options configuration used to fetch secrets and folders
  */
-class KsmRecordResolver {
+record KsmRecordResolver(SecretsManagerOptions options) {
 
   private static final Pattern UID_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{22}$");
-
-  private final SecretsManagerOptions options;
-
-  /**
-   * Creates a new resolver that will use the supplied options when interacting with the Keeper
-   * Secrets Manager.
-   *
-   * @param options configuration used to fetch secrets and folders
-   */
-  KsmRecordResolver(SecretsManagerOptions options) {
-    this.options = options;
-  }
 
   /**
    * Checks whether the provided record specifier is already a Keeper record UID.
