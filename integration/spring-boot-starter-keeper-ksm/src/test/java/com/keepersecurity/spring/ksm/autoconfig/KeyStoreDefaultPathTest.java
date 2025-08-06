@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = {KeeperKsmAutoConfiguration.class, KeyStoreDefaultPathTest.MockOptionsConfig.class},
     properties = {
-        "keeper.ksm.container-type=default",
+        "keeper.ksm.provider-type=default",
         "keeper.ksm.secret-user=ksm-config",
         "keeper.ksm.secret-password=changeme",
         "spring.main.allow-bean-definition-overriding=true"

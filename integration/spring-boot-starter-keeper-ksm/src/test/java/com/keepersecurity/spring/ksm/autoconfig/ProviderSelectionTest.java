@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
     properties = {
         "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
-        "keeper.ksm.provider=com.keepersecurity.spring.ksm.autoconfig.TestBcProvider"
+        "keeper.ksm.provider-class=com.keepersecurity.spring.ksm.autoconfig.TestBcProvider"
     })
 class ProviderSelectionTest {
 
