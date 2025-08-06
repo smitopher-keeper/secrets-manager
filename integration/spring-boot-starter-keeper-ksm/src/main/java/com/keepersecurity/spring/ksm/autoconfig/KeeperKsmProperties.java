@@ -23,7 +23,11 @@ public class KeeperKsmProperties implements InitializingBean{
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KeeperKsmProperties.class);
 
-  // package-private constructor required for configuration binding
+  /**
+   * Creates a new {@code KeeperKsmProperties} instance.
+   * The constructor is package-private so that Spring can perform
+   * configuration binding while keeping the type out of the public API.
+   */
   KeeperKsmProperties() {
   }
 
@@ -376,6 +380,12 @@ public class KeeperKsmProperties implements InitializingBean{
      * environments such as IL5.
      */
     private boolean allowStaleIfOffline = false;
+
+    /**
+     * Private constructor to prevent external instantiation.
+     */
+    private CacheProperties() {
+    }
 
     /**
      * Returns whether caching is enabled.
