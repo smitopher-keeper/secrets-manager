@@ -240,8 +240,8 @@ public class KeeperKsmAutoConfiguration {
       case AZURE_HSM -> AzureHsmSaver.save(config, props);
       case FORTANIX -> FortanixSaver.save(config, props);
       case HSM -> HsmSaver.save(config, props);
-      default -> throw new IllegalArgumentException(
-          "Unexpected or unimplemented provider: " + providerType);
+      case SOFTHSM2 -> throw new UnsupportedOperationException("Unimplemented case: " + providerType);
+      case SUN_PKCS11 -> throw new UnsupportedOperationException("Unimplemented case: " + providerType);
     }
 
     log.atInfo().log("One-time token consumed.");
