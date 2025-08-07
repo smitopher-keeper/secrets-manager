@@ -49,21 +49,21 @@ When `container-type` is `pkcs11`, this starter uses `Pkcs11ConfigStorage`. This
 
 The `keeper.ksm.container-type` property accepts the following values.
 
-| Value | Default location | Security level | Compliance profile | Notes |
-|-------|-----------------|----------------|--------------------|-------|
-| `default` | `ksm-config.p12` | IL-2 | None | default Java keystore |
-| `named`   | `ksm-config.p12` | IL-2 | None | named keystore entry |
-| `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS |
-| `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider |
-| `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider |
-| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | requires AWS SDK |
-| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | requires Azure SDK |
-| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via CloudHSM |
-| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via Azure HSM |
-| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | requires Google SDK |
-| `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file |
-| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | generic PKCS#11 HSM |
-| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM via PKCS#11 |
+| Value | Default location | Security level | Compliance profile | Notes
+|-------|-----------------|----------------|--------------------|-------
+| `default` | `ksm-config.p12` | IL-2 | None | default Java keystore
+| `named`   | `ksm-config.p12` | IL-2 | None | named keystore entry
+| `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS
+| `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider
+| `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider
+| `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | requires AWS SDK
+| `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | requires Azure SDK
+| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via CloudHSM
+| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via Azure HSM
+| `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | requires Google SDK
+| `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file
+| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | generic PKCS#11 HSM
+| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM via PKCS#11
 
 **Caution:** The `raw` container stores secrets in clear text and should only be used for testing or other non-production environments.
 
@@ -79,17 +79,17 @@ The following providers from the
 enum are IL-5 ready. Each entry complies with the corresponding security
 profile indicated below:
 
-| Provider | Enum constant | Compliance highlights |
-|----------|---------------|-----------------------|
-| Bouncy Castle FIPS Keystore | `BC_FIPS` | Utilizes the Bouncy Castle FIPS provider for FIPS 140-2 compliance. |
-| Oracle FIPS Keystore | `ORACLE_FIPS` | Oracle JCE FIPS provider for FIPS 140-2 compliance. |
-| Sun PKCS#11 Provider | `SUN_PKCS11` | Uses the built-in Sun PKCS#11 provider in FIPS mode. |
-| AWS Secrets Manager | `AWS` | Cloud-based integration that meets FedRAMP High. |
-| Azure Key Vault | `AZURE` | Cloud-based integration that meets FedRAMP High. |
-| AWS CloudHSM | `AWS_HSM` | Cloud-based HSM that meets FedRAMP High. |
-| Azure Dedicated HSM | `AZURE_HSM` | Cloud-based HSM that meets FedRAMP High. |
-| Hardware Security Module | `HSM` | Stores configuration through PKCS#11, providing FIPS 140-2 compliance. |
-| Fortanix DSM | `FORTANIX` | Integrates with Fortanix DSM for FIPS 140-2 compliance. |
+| Provider | Enum constant | Compliance highlights
+|----------|---------------|-----------------------
+| Bouncy Castle FIPS Keystore | `BC_FIPS` | Utilizes the Bouncy Castle FIPS provider for FIPS 140-2 compliance.
+| Oracle FIPS Keystore | `ORACLE_FIPS` | Oracle JCE FIPS provider for FIPS 140-2 compliance.
+| Sun PKCS#11 Provider | `SUN_PKCS11` | Uses the built-in Sun PKCS#11 provider in FIPS mode.
+| AWS Secrets Manager | `AWS` | Cloud-based integration that meets FedRAMP High.
+| Azure Key Vault | `AZURE` | Cloud-based integration that meets FedRAMP High.
+| AWS CloudHSM | `AWS_HSM` | Cloud-based HSM that meets FedRAMP High.
+| Azure Dedicated HSM | `AZURE_HSM` | Cloud-based HSM that meets FedRAMP High.
+| Hardware Security Module | `HSM` | Stores configuration through PKCS#11, providing FIPS 140-2 compliance.
+| Fortanix DSM | `FORTANIX` | Integrates with Fortanix DSM for FIPS 140-2 compliance.
 
 All of the above return `true` from `isIl5Ready()` in `KsmConfigProvider`,
 signaling that they meet IL-5 security requirements.
