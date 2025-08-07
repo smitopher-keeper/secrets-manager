@@ -1,19 +1,32 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
-import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest(classes = KeeperKsmAutoConfiguration.class,
-    properties = {"keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json"})
+import com.keepersecurity.secretsManager.core.InMemoryStorage;
+import com.keepersecurity.secretsManager.core.KeyValueStorage;
+import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+
+@SpringBootTest(
+    classes = {KeeperKsmAutoConfiguration.class, KeeperKsmAutoConfigurationTest.Config.class})
 class KeeperKsmAutoConfigurationTest {
 
-  @Autowired
-  private SecretsManagerOptions options;
+  static class Config {
+    @Bean
+    KeyValueStorage ksmConfig() throws IOException {
+      String json = Files.readString(Path.of("src/test/resources/starter-ksm-config.json"));
+      return new InMemoryStorage(json);
+    }
+  }
+
+  @Autowired private SecretsManagerOptions options;
 
   @Test
   void contextLoads() {
