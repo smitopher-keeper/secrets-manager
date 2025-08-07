@@ -18,7 +18,7 @@ class AuditLoggingValidatorTest {
           .withBean("ksmConfig", KeyValueStorage.class, () -> new InMemoryStorage("{}"))
           .withPropertyValues(
               "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
-              "keeper.ksm.provider-type=sun_pkcs11",
+              "keeper.ksm.provider-type=bc_fips",
               "crypto.check.mode=warn");
 
   @Test

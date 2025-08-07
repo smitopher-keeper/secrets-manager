@@ -28,11 +28,11 @@ class Il5EnforcementTest {
   }
 
   @Test
-  void sunPkcs11AllowedWithIl5Enforcement() {
+  void bcFipsAllowedWithIl5Enforcement() {
     try {
       Security.addProvider(new TestFipsProvider());
       contextRunner
-          .withPropertyValues("keeper.ksm.enforce-il5=true", "keeper.ksm.provider-type=sun_pkcs11")
+          .withPropertyValues("keeper.ksm.enforce-il5=true", "keeper.ksm.provider-type=bc_fips")
           .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
     } finally {
       Security.removeProvider("BCFIPS");
@@ -44,7 +44,7 @@ class Il5EnforcementTest {
     contextRunner
         .withPropertyValues(
             "keeper.ksm.enforce-il5=true",
-            "keeper.ksm.provider-type=sun_pkcs11",
+            "keeper.ksm.provider-type=bc_fips",
             "keeper.ksm.one-time-token=dummy.txt",
             "crypto.check.mode=warn")
         .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
@@ -55,7 +55,7 @@ class Il5EnforcementTest {
     contextRunner
         .withPropertyValues(
             "keeper.ksm.enforce-il5=true",
-            "keeper.ksm.provider-type=sun_pkcs11",
+            "keeper.ksm.provider-type=bc_fips",
             "bootstrap.check.mode=warn",
             "crypto.check.mode=warn",
             "ksm.config.ott-token=dummy")
