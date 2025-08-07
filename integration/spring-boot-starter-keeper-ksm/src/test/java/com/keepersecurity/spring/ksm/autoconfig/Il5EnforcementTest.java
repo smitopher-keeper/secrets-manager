@@ -18,31 +18,21 @@ class Il5EnforcementTest {
               "audit.check.mode=warn");
 
   @Test
-  void failsWithoutHsmProviderWhenIl5Enforced() {
-    contextRunner
-        .withPropertyValues("keeper.ksm.enforce-il5=true", "keeper.ksm.provider-type=sun_pkcs11")
-        .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
-  }
-
-  @Test
-  void softHsm2NotAllowedWithIl5Enforcement() {
+  void failsWhenProviderNotIl5() {
     contextRunner
         .withPropertyValues(
             "keeper.ksm.enforce-il5=true",
-            "keeper.ksm.provider-type=sun_pkcs11",
-            "keeper.ksm.hsm-provider=softHsm2")
+            "keeper.ksm.provider-type=default",
+            "crypto.check.mode=warn")
         .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
   }
 
   @Test
-  void awsCloudHsmAllowedWithIl5Enforcement() {
+  void sunPkcs11AllowedWithIl5Enforcement() {
     try {
       Security.addProvider(new TestFipsProvider());
       contextRunner
-          .withPropertyValues(
-              "keeper.ksm.enforce-il5=true",
-              "keeper.ksm.provider-type=sun_pkcs11",
-              "keeper.ksm.hsm-provider=awsCloudHsm")
+          .withPropertyValues("keeper.ksm.enforce-il5=true", "keeper.ksm.provider-type=sun_pkcs11")
           .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
     } finally {
       Security.removeProvider("BCFIPS");
@@ -52,7 +42,11 @@ class Il5EnforcementTest {
   @Test
   void oneTimeTokenNotAllowedWhenIl5Enforced() {
     contextRunner
-        .withPropertyValues("keeper.ksm.enforce-il5=true", "keeper.ksm.one-time-token=dummy.txt")
+        .withPropertyValues(
+            "keeper.ksm.enforce-il5=true",
+            "keeper.ksm.provider-type=sun_pkcs11",
+            "keeper.ksm.one-time-token=dummy.txt",
+            "crypto.check.mode=warn")
         .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
   }
 
@@ -62,7 +56,6 @@ class Il5EnforcementTest {
         .withPropertyValues(
             "keeper.ksm.enforce-il5=true",
             "keeper.ksm.provider-type=sun_pkcs11",
-            "keeper.ksm.hsm-provider=awsCloudHsm",
             "bootstrap.check.mode=warn",
             "crypto.check.mode=warn",
             "ksm.config.ott-token=dummy")
