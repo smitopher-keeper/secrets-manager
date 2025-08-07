@@ -134,7 +134,7 @@ public class KeeperKsmAutoConfiguration {
       enforceIl5(properties, environment);
     }
     Optional.ofNullable(properties.getOneTimeToken())
-        .ifPresent(path -> consumeToken(path, properties));
+        .ifPresent(token -> consumeToken(token, properties));
 
     KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
     SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
@@ -220,15 +220,7 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private void consumeToken(Path tokenFile, KeeperKsmProperties props) {
-    String token;
-    try {
-      token = Files.readString(tokenFile);
-    } catch (IOException e) {
-      String message = "failure loading KMS One Time Token";
-      log.atError().setCause(e).log(message);
-      throw new IllegalStateException(message, e);
-    }
+  private void consumeToken(String token, KeeperKsmProperties props) {
 
     InMemoryStorage inMemoryStorage = new InMemoryStorage();
     SecretsManager.initializeStorage(inMemoryStorage, token);
@@ -252,16 +244,7 @@ public class KeeperKsmAutoConfiguration {
           "Unexpected or unimplemented provider: " + providerType);
     }
 
-    try {
-      Files.deleteIfExists(tokenFile);
-    } catch (IOException e) {
-      log.atWarn().setCause(e).log("Failed to delete one-time token file {}", tokenFile);
-    }
-
-    String message =
-        "One-time token consumed. Remove the property 'keeper.ksm.one-time-token' and restart the application.";
-    log.atInfo().log(message);
-    throw new OneTimeTokenConsumedException(message);
+    log.atInfo().log("One-time token consumed.");
   }
 
   /**
