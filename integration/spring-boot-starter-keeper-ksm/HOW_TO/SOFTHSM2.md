@@ -21,8 +21,7 @@ softhsm2-util --init-token --slot 0 --label ksm-token
 Make note of the slot number (`0` in this example), the token label (`ksm-token`), and the PIN you chose. These values are needed when configuring your application.
 
 ## Configure the provider
-1. Ensure the `SOFTHSM2_CONF` environment variable points to your configuration file if you are not using the default location.
-2. Add the token details to your Spring configuration:
+1. Add the token details to your Spring configuration:
    ```yaml
    keeper:
      ksm:
@@ -30,7 +29,11 @@ Make note of the slot number (`0` in this example), the token label (`ksm-token`
        secret-path: pkcs11://slot/0/token/ksm-token   # use your slot and label
        secret-password: <PIN>                         # token PIN
    ```
-3. Start the application and enter the PIN when prompted.
+2. Start the application and enter the PIN when prompted.
+
+For advanced scenarios or custom PKCS#11 providers, define a dedicated
+`@Configuration` class that registers the provider and supplies the
+`SecretsManagerOptions` bean as shown in the main README.
 
 SoftHSM2 should only be used for local development. For production deployments use a hardware security module that meets your security requirements.
 
