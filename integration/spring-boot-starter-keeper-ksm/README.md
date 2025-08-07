@@ -46,19 +46,16 @@ IL5 enforcement also requires audit logging. Configure a logger named `com.keepe
   ```
   Ensure the file is accessible at runtime. The starter will load this file to configure access to Keeper Secrets Manager.
 
-- **Option 3: Secret Container Options** – The config can be stored in different container types. By default a local file is used. Set the container type and optional credentials if needed:
+- **Option 3: Secret Container Options** – The config can be stored in different container providers. By default a local file is used. Set the provider type and optional credentials if needed:
   ```properties
-  keeper.ksm.container-type = pkcs11
-  keeper.ksm.hsm-provider = softHsm2
-  keeper.ksm.pkcs11-library = /path/to/lib.so
+  keeper.ksm.provider-type = bc_fips
   keeper.ksm.secret-user = changeme
   keeper.ksm.secret-password = changeme
   ```
-When `container-type` is `pkcs11`, this starter uses `Pkcs11ConfigStorage`. This class only stores the Keeper configuration in memory and **does not** load the specified library as a real PKCS#11 provider. A full PKCS#11 integration would require additional implementation.
 
-### Supported Container Types
+### Supported Provider Types
 
-The `keeper.ksm.container-type` property accepts the following values.
+The `keeper.ksm.provider-type` property accepts the following values.
 
 | Value | Default location | Security level | Compliance profile | Notes
 |-------|-----------------|----------------|--------------------|-------
@@ -66,22 +63,12 @@ The `keeper.ksm.container-type` property accepts the following values.
 | `named`   | `ksm-config.p12` | IL-2 | None | named keystore entry
 | `bc_fips` | `ksm-config.bcfks` | IL-5 | FIPS 140-2 | requires Bouncy Castle FIPS
 | `oracle_fips` | `ksm-config.p12` | IL-5 | FIPS 140-2 | Oracle FIPS provider
-| `sun_pkcs11` | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | Sun PKCS#11 provider
 | `aws`     | `aws-secrets://region/resource` | IL-5 | FedRAMP High | requires AWS SDK
 | `azure`   | `azure-keyvault://vault/resource` | IL-5 | FedRAMP High | requires Azure SDK
-| `aws_hsm` | `aws-cloudhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via CloudHSM
-| `azure_hsm` | `azure-dedicatedhsm://resource` | IL-5 | FedRAMP High | PKCS#11 via Azure HSM
 | `google`  | `gcp-secretmanager://project/resource` | IL-4 | FedRAMP Moderate | requires Google SDK
 | `raw`     | `ksm-config.json` | IL-2 | None | plain JSON file
-| `hsm`     | `pkcs11://slot/0/token/kms` | IL-5 | FIPS 140-2 | generic PKCS#11 HSM
-| `fortanix` | `fortanix://token` | IL-5 | FIPS 140-2 | Fortanix DSM via PKCS#11
 
-**Caution:** The `raw` container stores secrets in clear text and should only be used for testing or other non-production environments.
-
-AWS CloudHSM, Azure Dedicated HSM, Fortanix DSM and the generic `hsm` provider
-persist the configuration using a PKCS#11-backed keystore. Ensure the
-appropriate vendor PKCS#11 library and security provider are available on the
-classpath when using these options.
+**Caution:** The `raw` provider stores secrets in clear text and should only be used for testing or other non-production environments.
 
 ### IL-5 Provider Summary
 
@@ -94,20 +81,15 @@ profile indicated below:
 |----------|---------------|-----------------------
 | Bouncy Castle FIPS Keystore | `BC_FIPS` | Utilizes the Bouncy Castle FIPS provider for FIPS 140-2 compliance.
 | Oracle FIPS Keystore | `ORACLE_FIPS` | Oracle JCE FIPS provider for FIPS 140-2 compliance.
-| Sun PKCS#11 Provider | `SUN_PKCS11` | Uses the built-in Sun PKCS#11 provider in FIPS mode.
 | AWS Secrets Manager | `AWS` | Cloud-based integration that meets FedRAMP High.
 | Azure Key Vault | `AZURE` | Cloud-based integration that meets FedRAMP High.
-| AWS CloudHSM | `AWS_HSM` | Cloud-based HSM that meets FedRAMP High.
-| Azure Dedicated HSM | `AZURE_HSM` | Cloud-based HSM that meets FedRAMP High.
-| Hardware Security Module | `HSM` | Stores configuration through PKCS#11, providing FIPS 140-2 compliance.
-| Fortanix DSM | `FORTANIX` | Integrates with Fortanix DSM for FIPS 140-2 compliance.
 
 All of the above return `true` from `isIl5Ready()` in `KsmConfigProvider`,
 signaling that they meet IL-5 security requirements.
 
 - **Key Store Placeholder** – You can store the configuration in a Java KeyStore instead of a plain file. Set the container type to `keystore` and optionally provide your own alias and password:
   ```properties
-  keeper.ksm.container-type = keystore
+  keeper.ksm.provider-type = keystore
   keeper.ksm.secret-user = ksm-config
   keeper.ksm.secret-password = changeme
   ```
@@ -193,14 +175,6 @@ public ConfigStorage configStorage() {
 }
 ```
 
-### Sun PKCS#11 Requirements
-
-Using the `SUN_PKCS11` provider requires the JDK's SunPKCS11 security provider
-to be configured with a file that references your HSM's PKCS#11 library. Ensure
-the provider is registered before the application starts and specify the library
-path with `keeper.ksm.pkcs11-library` when using the `pkcs11` container type.
-For detailed steps see [SUN_PKCS11.md](SUN_PKCS11.md).
-
 If neither property is set, the auto-configuration will not initialize and will throw an error to remind you to configure KSM credentials.
 
 ### Using SoftHSM2 for IL5 Emulation
@@ -219,7 +193,7 @@ SoftHSM2 can emulate an IL5 HSM for local development and testing.
   ```yaml
   ksm:
     config:
-      hsm-provider: softhsm2
+      provider-type: softhsm2
       enforce-il5: false
   ```
 

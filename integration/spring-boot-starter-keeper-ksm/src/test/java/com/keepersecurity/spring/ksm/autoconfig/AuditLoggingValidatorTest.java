@@ -19,7 +19,6 @@ class AuditLoggingValidatorTest {
           .withPropertyValues(
               "keeper.ksm.secret-path=src/test/resources/starter-ksm-config.json",
               "keeper.ksm.provider-type=sun_pkcs11",
-              "keeper.ksm.hsm-provider=awsCloudHsm",
               "crypto.check.mode=warn");
 
   @Test

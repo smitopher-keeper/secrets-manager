@@ -1,6 +1,6 @@
-# Using SoftHSM2 with the HSM Provider
+# Using SoftHSM2
 
-SoftHSM2 is a software implementation of a PKCS#11 compatible hardware security module. It is useful for development and testing the `HSM` provider profile in the Keeper Secrets Manager Spring Boot starter.
+SoftHSM2 is a software implementation of a PKCS#11 compatible hardware security module. It is useful for development and testing the `SOFTHSM2` provider profile in the Keeper Secrets Manager Spring Boot starter.
 
 ## Install SoftHSM2
 - **Ubuntu**
@@ -26,11 +26,8 @@ Make note of the slot number (`0` in this example), the token label (`ksm-token`
    ```yaml
    keeper:
      ksm:
-       container-type: pkcs11
-       hsm-provider: softHsm2
+       provider-type: softhsm2
        secret-path: pkcs11://slot/0/token/ksm-token   # use your slot and label
-       pkcs11:
-         library: /usr/lib/softhsm/libsofthsm2.so     # or /usr/local/lib/softhsm/libsofthsm2.so
        secret-password: <PIN>                         # token PIN
    ```
 3. Start the application and enter the PIN when prompted.

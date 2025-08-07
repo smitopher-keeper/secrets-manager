@@ -27,7 +27,7 @@ Edit `src/main/resources/application.yaml` to enable config loading:
 ```yaml
 keeper:
   ksm:
-    container-type: raw
+    provider-type: raw
     secret-path: ~/.keeper/ksm-config.json
 ```
 

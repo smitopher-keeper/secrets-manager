@@ -44,9 +44,8 @@ import org.springframework.core.env.Environment;
  *
  * <p>This configuration class registers a {@link SecretsManagerOptions} bean based on {@link
  * KeeperKsmProperties}. It supports initialisation from a one-time token as well as loading an
- * existing JSON configuration file. The {@code keeper.ksm.hsm-provider} property chooses the
- * backing HSM. If IL5 enforcement ({@code keeper.ksm.enforce-il5}) is enabled while using a
- * non-compliant provider the application fails fast.
+ * existing JSON configuration file. If IL5 enforcement ({@code keeper.ksm.enforce-il5}) is enabled
+ * while using a non-compliant provider the application fails fast.
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath

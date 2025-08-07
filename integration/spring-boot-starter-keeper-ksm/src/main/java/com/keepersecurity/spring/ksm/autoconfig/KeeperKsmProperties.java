@@ -1,23 +1,23 @@
 package com.keepersecurity.spring.ksm.autoconfig;
 
+import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Provider;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.Duration;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import com.keepersecurity.secretsManager.core.LocalConfigStorage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Holder for properties in the {@code keeper.ksm.*} namespace.
- * <p>
- * The values are bound from application configuration files so that the
- * {@link KeeperKsmAutoConfiguration} can configure the SDK appropriately.
+ *
+ * <p>The values are bound from application configuration files so that the {@link
+ * KeeperKsmAutoConfiguration} can configure the SDK appropriately.
  */
 @Getter
 @Setter
@@ -34,16 +34,17 @@ public class KeeperKsmProperties implements InitializingBean {
   /**
    * Path to the secret container that holds the Keeper Secrets Manager configuration JSON. This can
    * be a file path or a location inside a secrets service.
-   * <p>
-   * If a one-time token is provided and this path is set, the token will be redeemed and the config
-   * stored at this location. If not set and {@link KsmConfigProvider#RAW RAW} is used with a token,
-   * a default file {@code "ksm-config.json"} will be used for the secretPath property.
+   *
+   * <p>If a one-time token is provided and this path is set, the token will be redeemed and the
+   * config stored at this location. If not set and {@link KsmConfigProvider#RAW RAW} is used with a
+   * token, a default file {@code "ksm-config.json"} will be used for the secretPath property.
    */
   private Path secretPath;
+
   /**
    * One-Time Access Token for Keeper Secrets Manager initialization.
-   * <p>
-   * The starter redeems it to generate the configuration.
+   *
+   * <p>The starter redeems it to generate the configuration.
    */
   private String oneTimeToken;
 
@@ -54,39 +55,19 @@ public class KeeperKsmProperties implements InitializingBean {
   private Class<? extends Provider> providerClass;
 
   /**
-   * Type of secret container to use. Supported values correspond to the constants in
-   * {@link KsmConfigProvider} such as {@code default}, {@code named}, {@code bc_fips},
-   * {@code oracle_fips}, {@code sun_pkcs11}, {@code softhsm2}, {@code aws}, {@code azure},
-   * {@code aws_hsm}, {@code azure_hsm}, {@code google}, {@code fortanix}, {@code raw}, {@code hsm}.
-   * For raw JSON configuration, use {@link KsmConfigProvider#RAW}. Defaults to
-   * {@link KsmConfigProvider#DEFAULT}.
+   * Type of secret container to use. Supported values correspond to the constants in {@link
+   * KsmConfigProvider} such as {@code default}, {@code named}, {@code bc_fips}, {@code
+   * oracle_fips}, {@code aws}, {@code azure}, {@code google}, {@code raw}. For raw JSON
+   * configuration, use {@link KsmConfigProvider#RAW}. Defaults to {@link
+   * KsmConfigProvider#DEFAULT}.
    */
   private KsmConfigProvider providerType = KsmConfigProvider.DEFAULT;
 
-  /**
-   * User name for accessing the secret container. Defaults to "changeme".
-   */
+  /** User name for accessing the secret container. Defaults to "changeme". */
   private String secretUser = "changeme";
 
-  /**
-   * Password for accessing the secret container. Defaults to "changeme".
-   */
+  /** Password for accessing the secret container. Defaults to "changeme". */
   private String secretPassword = "changeme";
-
-  /**
-   * Path to the PKCS#11 library when using the "pkcs11" container type.
-   */
-  private String pkcs11Library;
-
-  /**
-   * Known HSM provider to assist with PKCS#11 configuration. Optional.
-   * <p>
-   * When set to {@link HsmProvider#SOFT_HSM2}, the starter will attempt to auto-detect the SoftHSM2
-   * library path. {@link HsmProvider#SUN_PKCS11} indicates that the JDK's built in SunPKCS11
-   * provider is used.
-   * </p>
-   */
-  private HsmProvider hsmProvider;
 
   /**
    * When true, the application will fail to start unless the IL-5 certified provider is available.
@@ -101,9 +82,7 @@ public class KeeperKsmProperties implements InitializingBean {
    */
   private List<String> records = new ArrayList<>();
 
-  /**
-   * Configuration for Keeper SDK secret caching.
-   */
+  /** Configuration for Keeper SDK secret caching. */
   private CacheProperties cache = new CacheProperties();
 
   @Override
@@ -111,23 +90,11 @@ public class KeeperKsmProperties implements InitializingBean {
    * Validates the configuration after properties are bound and applies defaults where necessary.
    */
   public void afterPropertiesSet() throws Exception {
-    if (enforceIl5) {
-      validateHsmProvider();
-      if (!providerType.isIl5Ready()) {
-        notIl5Compliant(providerType);
-      }
+    if (enforceIl5 && !providerType.isIl5Ready()) {
+      notIl5Compliant(providerType);
     }
     if (secretPath == null) {
       secretPath = Paths.get(providerType.getDefaultLocation());
-    }
-  }
-
-  private void validateHsmProvider() {
-    if (hsmProvider == null || !hsmProvider.isFipsApproved()) {
-      String message =
-          "Configured HSM provider is not FIPS-approved. IL5 enforcement requires a FIPS-compliant PKCS#11 provider.";
-      log.atError().log(message);
-      throw new IllegalStateException(message);
     }
   }
 
@@ -145,9 +112,7 @@ public class KeeperKsmProperties implements InitializingBean {
   @Setter
   public static class CacheProperties {
 
-    /**
-     * Whether Keeper SDK secret caching is enabled. Defaults to {@code true}.
-     */
+    /** Whether Keeper SDK secret caching is enabled. Defaults to {@code true}. */
     private boolean enabled = true;
 
     /**
@@ -175,11 +140,7 @@ public class KeeperKsmProperties implements InitializingBean {
      */
     private boolean allowStaleIfOffline = false;
 
-    /**
-     * Private constructor to prevent external instantiation.
-     */
+    /** Private constructor to prevent external instantiation. */
     private CacheProperties() {}
-
   }
-
 }
