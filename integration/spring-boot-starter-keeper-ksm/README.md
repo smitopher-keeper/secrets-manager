@@ -18,17 +18,19 @@ This will transitively include the Keeper Secrets Manager SDK and required Sprin
 
 You can configure the KSM credentials via Spring Boot properties (e.g., in your `application.properties` or YAML):
 
-- **Option 1: One-Time Token (OTT)** – Use this for first-time setup. Provide the **path** to a file that contains the one-time access token given by Keeper:
+- **Option 1: One-Time Token (OTT)** – Use this for first-time setup. Provide the token given by Keeper:
+
 ```properties
-keeper.ksm.one-time-token = path/to/one-time-token.txt
-keeper.ksm.secret-path = path/to/ksm-config.json
+keeper.ksm.one-time-token = <Token value>
 ```
-At startup the starter consumes the token file, writes the retrieved configuration JSON to `keeper.ksm.secret-path`, deletes the token file, and exits with a `OneTimeTokenConsumedException`.
+At startup the starter consumes the token , writes the retrieved KSM config to the configured container.
 
 To avoid storing the token path in `application.properties`, supply it at runtime:
 ```bash
 java -jar app.jar --keeper.ksm.one-time-token=/path/to/one-time-token.txt
-# or
+```
+or
+```bash
 export KEEPER_KSM_ONE_TIME_TOKEN=/path/to/one-time-token.txt
 java -jar app.jar
 ```
@@ -44,7 +46,7 @@ IL5 enforcement also requires audit logging. Configure a logger named `com.keepe
   ```
   Ensure the file is accessible at runtime. The starter will load this file to configure access to Keeper Secrets Manager.
 
-- **Secret Container Options** – The config can be stored in different container types. By default a local file is used. Set the container type and optional credentials if needed:
+- **Option 3: Secret Container Options** – The config can be stored in different container types. By default a local file is used. Set the container type and optional credentials if needed:
   ```properties
   keeper.ksm.container-type = pkcs11
   keeper.ksm.hsm-provider = softHsm2
