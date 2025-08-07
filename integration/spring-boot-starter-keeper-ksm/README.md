@@ -23,7 +23,16 @@ You can configure the KSM credentials via Spring Boot properties (e.g., in your 
 keeper.ksm.one-time-token = path/to/one-time-token.txt
 keeper.ksm.secret-path = path/to/ksm-config.json
 ```
-On the first run, the starter reads the token from the file, redeems it to retrieve your KSM configuration and save it to the specified JSON file. The token file is deleted **after** the configuration is generated and the starter throws a `OneTimeTokenConsumedException` to stop the application. **Note:** one-time tokens can only be used once; restart the application after removing the `keeper.ksm.one-time-token` property from your configuration.
+At startup the starter consumes the token file, writes the retrieved configuration JSON to `keeper.ksm.secret-path`, deletes the token file, and exits with a `OneTimeTokenConsumedException`.
+
+To avoid storing the token path in `application.properties`, supply it at runtime:
+```bash
+java -jar app.jar --keeper.ksm.one-time-token=/path/to/one-time-token.txt
+# or
+export KEEPER_KSM_ONE_TIME_TOKEN=/path/to/one-time-token.txt
+java -jar app.jar
+```
+After the configuration is generated, remove the `keeper.ksm.one-time-token` property or environment variable before restarting. One-time tokens can only be redeemed once.
 
 When `keeper.ksm.enforce-il5=true`, this one-time-token bootstrapping is blocked to maintain IL5 compliance. You may override this behavior by setting `bootstrap.check.mode=warn` to merely log a warning.
 
