@@ -18,11 +18,20 @@ Create a token and set a PIN:
 softhsm2-util --init-token --slot 0 --label ksm-token
 ```
 
+Make note of the slot number (`0` in this example), the token label (`ksm-token`), and the PIN you chose. These values are needed when configuring your application.
+
 ## Configure the provider
 1. Ensure the `SOFTHSM2_CONF` environment variable points to your configuration file if you are not using the default location.
-2. Configure the Spring Boot starter to use the PKCS#11 library. Depending on your installation, the library may reside in `/usr/lib/softhsm` or `/usr/local/lib/softhsm`:
+2. Add the token details to your Spring configuration:
    ```yaml
-   keeper.ksm.pkcs11.library: /usr/lib/softhsm/libsofthsm2.so # or /usr/local/lib/softhsm/libsofthsm2.so
+   keeper:
+     ksm:
+       container-type: pkcs11
+       hsm-provider: softHsm2
+       secret-path: pkcs11://slot/0/token/ksm-token   # use your slot and label
+       pkcs11:
+         library: /usr/lib/softhsm/libsofthsm2.so     # or /usr/local/lib/softhsm/libsofthsm2.so
+       secret-password: <PIN>                         # token PIN
    ```
 3. Start the application and enter the PIN when prompted.
 
