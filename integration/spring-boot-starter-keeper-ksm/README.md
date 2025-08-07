@@ -95,16 +95,10 @@ signaling that they meet IL-5 security requirements.
   ```
   If the Bouncy Castle provider is available on the classpath, the starter will use a `BCKS` store; otherwise it falls back to the standard `JKS`. A clear text JSON file is still used under the hood. The default path is `~/.keeper/ksm/ksm-config.<shape>` where `<shape>` resolves to `bcks`, `jks`, or `json` depending on the chosen storage type.
 
-- **Optional Provider Selection** – You can specify the security provider class explicitly:
-  ```properties
-  keeper.ksm.provider = org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider
-  ```
-  If not set, the starter will attempt to load the Bouncy Castle FIPS provider, fall back to the regular Bouncy Castle provider, and finally use the JVM default provider.
-
-- **IL-5 Enforcement** – To require the Bouncy Castle FIPS provider and fail startup if it is not present:
-  ```properties
-  keeper.ksm.enforce-il5 = true
-  ```
+  - **IL-5 Enforcement** – To require the Bouncy Castle FIPS provider and fail startup if it is not present:
+    ```properties
+    keeper.ksm.enforce-il5 = true
+    ```
 
 - **Record Selection** – Specify which Keeper records to load. Each entry can be
   a record UID or a `folder/record` path:
@@ -201,9 +195,37 @@ SoftHSM2 can emulate an IL5 HSM for local development and testing.
 
 - **Troubleshooting**
 
-  Errors about missing PKCS#11 libraries usually mean the `libsofthsm2.so` module is not installed or not on the search path. Install the library and ensure the `SOFTHSM2_MODULE` environment variable points to the correct location.
+  Errors about missing PKCS#11 libraries usually mean the `libsofthsm2.so` module is not installed or not on the search path. Install the library.
 
 For more details see the [Keeper HSM documentation](https://docs.keeper.io/secrets-manager/secrets-manager/hsm-integration).
+
+### Custom PKCS#11/HSM Configuration
+
+Some deployments require direct interaction with a PKCS#11 device or vendor-specific
+HSM module. In these cases create a custom Spring configuration that registers
+the provider and exposes a `SecretsManagerOptions` bean:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import com.keepersecurity.secretsManager.core.KeyValueStorage;
+import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
+import sun.security.pkcs11.SunPKCS11; // or vendor provider
+import java.security.Security;
+
+@Configuration
+public class HsmConfiguration {
+  @Bean
+  SecretsManagerOptions hsmOptions() {
+    Security.addProvider(new SunPKCS11("/path/to/pkcs11.cfg"));
+    KeyValueStorage storage = new Pkcs11ConfigStorage(
+        "pkcs11://slot/0/token/ksm-token", "<PIN>".toCharArray());
+    return new SecretsManagerOptions(storage);
+  }
+}
+```
+
+This approach gives full control over the PKCS#11 module and token configuration.
 
 ### Optional Cloud and HSM Providers
 

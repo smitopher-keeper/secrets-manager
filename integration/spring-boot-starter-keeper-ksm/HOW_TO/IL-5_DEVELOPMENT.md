@@ -67,14 +67,33 @@ Security.insertProviderAt(new BouncyCastleFipsProvider(), 1);
 
 ## 5. Configure the Spring Boot starter
 
-In `application.yml` point the starter to the PKCS#11 token and enable IL‑5 enforcement:
+Enable IL‑5 enforcement in your application configuration:
 ```yaml
 keeper:
   ksm:
-    provider: org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider
-    pkcs11:
-      library: /usr/lib/softhsm/libsofthsm2.so # adjust for your OS
     enforce-il5: true
 ```
 
-Start your application. The starter will use the SoftHSM2 token through SunPKCS11 and all cryptographic operations will be handled by the Bouncy Castle FIPS provider, providing a local setup that emulates an IL‑5 compliant environment.
+Provide PKCS#11 access through a custom Spring configuration:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import com.keepersecurity.secretsManager.core.KeyValueStorage;
+import com.keepersecurity.secretsManager.core.SecretsManagerOptions;
+import sun.security.pkcs11.SunPKCS11;
+import java.security.Security;
+
+@Configuration
+public class Il5HsmConfiguration {
+  @Bean
+  SecretsManagerOptions hsmOptions() {
+    Security.addProvider(new SunPKCS11("/path/to/pkcs11.cfg"));
+    KeyValueStorage storage = new Pkcs11ConfigStorage(
+        "pkcs11://slot/0/token/ksm-il5", "<PIN>".toCharArray());
+    return new SecretsManagerOptions(storage);
+  }
+}
+```
+
+Start your application. The starter uses the SoftHSM2 token through SunPKCS11 and all cryptographic operations are handled by the Bouncy Castle FIPS provider, providing a local setup that emulates an IL‑5 compliant environment.
