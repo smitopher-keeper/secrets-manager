@@ -27,11 +27,11 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -45,9 +45,8 @@ import org.springframework.core.env.Environment;
  * <p>This configuration class registers a {@link SecretsManagerOptions} bean based on {@link
  * KeeperKsmProperties}. It supports initialisation from a one-time token as well as loading an
  * existing JSON configuration file. The {@code keeper.ksm.hsm-provider} property chooses the
- * backing HSM. When set to {@code SOFT_HSM2} the auto-configuration locates the SoftHSM2 library
- * and wires it into the {@link SecretsManager} SDK. If IL5 enforcement ({@code
- * keeper.ksm.enforce-il5}) is enabled while using the emulator the application fails fast.
+ * backing HSM. If IL5 enforcement ({@code keeper.ksm.enforce-il5}) is enabled while using a
+ * non-compliant provider the application fails fast.
  */
 @Configuration // Marks this class as a configuration source for Spring
 @ConditionalOnClass(SecretsManager.class) // Only activate if the Keeper SDK is on the classpath
@@ -113,80 +112,31 @@ public class KeeperKsmAutoConfiguration {
   }
 
   /**
-   * Creates a {@link SecretsManagerOptions} bean based on the supplied {@link KeeperKsmProperties}.
-   * If a one-time token is configured it will be consumed to initialise the local configuration
-   * before the application exits. Otherwise the existing configuration is loaded from the
-   * configured location. When the {@code hsm-provider} property is {@code SOFT_HSM2} the SoftHSM2
-   * library is auto-detected and wired to the SDK. If IL5 enforcement is enabled while using the
-   * emulator an {@link IllegalStateException} is thrown to fail fast.
+   * Creates a {@link SecretsManagerOptions} bean using the supplied configuration storage. If a
+   * one-time token is configured it will be consumed to initialise the local configuration before
+   * the application exits.
    *
-   * <p>The {@code keeper.ksm.cache.enabled} property controls whether the Keeper SDK caches secrets
-   * in memory. Caching is enabled by default to improve performance for repeated secret access. The
-   * accompanying property {@code keeper.ksm.cache.persist} toggles persistent storage via {@link
-   * LocalConfigStorage}, storing encrypted cache data on disk.
+   * <p>If IL5 enforcement is enabled the environment is validated before creating the options. A
+   * supplied one-time token is consumed during initialisation.
    *
    * @param properties bound Keeper configuration properties
    * @param environment Spring environment used for bootstrap checks
-   * @param configStorage storage backend for cached secrets
+   * @param ksmConfig Keeper configuration storage
    * @return a fully configured {@link SecretsManagerOptions} instance
-   * @throws IllegalStateException if SoftHSM2 is used with IL5 enforcement or a one-time token is
-   *     provided while IL5 is enforced
+   * @throws IllegalStateException if a one-time token is provided while IL5 is enforced
    */
   @Bean
   @ConditionalOnMissingBean // Only create the bean if one isn't already defined in the context
   SecretsManagerOptions secretsManagerOptions(
-      KeeperKsmProperties properties, Environment environment, KeyValueStorage configStorage) {
-    if (properties.getHsmProvider() == HsmProvider.SOFT_HSM2) {
-      softhms2Provider(properties);
-    }
+      KeeperKsmProperties properties,
+      Environment environment,
+      @Qualifier("ksmConfig") KeyValueStorage ksmConfig) {
     if (properties.isEnforceIl5()) {
       enforceIl5(properties, environment);
     }
     Optional.ofNullable(properties.getOneTimeToken())
         .ifPresent(token -> consumeToken(token, properties));
-
-    KeyValueStorage ksmConfig = new InMemoryStorage(getKmsConfig(properties));
-    SecretsManagerOptions options = new SecretsManagerOptions(ksmConfig);
-    boolean cacheEnabled = properties.getCache().isEnabled();
-    try {
-      options.getClass().getMethod("setAllowCaching", boolean.class).invoke(options, cacheEnabled);
-    } catch (ReflectiveOperationException e) {
-      log.atDebug().setCause(e).log("SecretsManagerOptions does not support caching configuration");
-    }
-    try {
-      options
-          .getClass()
-          .getMethod("setCacheTtl", Duration.class)
-          .invoke(options, properties.getCache().getTtl());
-    } catch (ReflectiveOperationException e) {
-      log.atDebug()
-          .setCause(e)
-          .log("SecretsManagerOptions does not support cache TTL configuration");
-    }
-    try {
-      options
-          .getClass()
-          .getMethod("setAllowStaleCacheOnFailure", boolean.class)
-          .invoke(options, properties.getCache().isAllowStaleIfOffline());
-    } catch (ReflectiveOperationException e) {
-      log.atDebug()
-          .setCause(e)
-          .log("SecretsManagerOptions does not support stale cache failover configuration");
-    }
-    try {
-      Class<?> storageClass;
-      try {
-        storageClass = Class.forName("com.keepersecurity.secretsManager.core.ConfigStorage");
-      } catch (ClassNotFoundException e) {
-        storageClass = KeyValueStorage.class;
-      }
-      options.getClass().getMethod("setStorage", storageClass).invoke(options, configStorage);
-    } catch (ReflectiveOperationException e) {
-      log.atDebug()
-          .setCause(e)
-          .log("SecretsManagerOptions does not support persistent storage configuration");
-    }
-    return options;
+    return new SecretsManagerOptions(ksmConfig);
   }
 
   private void enforceIl5(KeeperKsmProperties properties, Environment environment) {
@@ -203,16 +153,6 @@ public class KeeperKsmAutoConfiguration {
     }
   }
 
-  private void softhms2Provider(KeeperKsmProperties properties) {
-    if (properties.isEnforceIl5()) {
-      String message = "SoftHSM2 is not IL-5 compliant";
-      log.atError().log(message);
-      throw new IllegalStateException(message);
-    }
-    PKCS11Config pkcs11 = KsmConfigProvider.SOFTHSM2.createPkcs11Config(properties);
-    properties.setPkcs11Library(pkcs11.libraryPath());
-  }
-
   /**
    * Provides a validator that enforces IL - 5 compliance rules at start-up.
    *
@@ -224,16 +164,6 @@ public class KeeperKsmAutoConfiguration {
   Il5ComplianceValidator il5ComplianceValidator(
       KeeperKsmProperties properties, Environment environment) {
     return new Il5ComplianceValidator(properties, environment);
-  }
-
-  private String getKmsConfig(KeeperKsmProperties properties) {
-    try {
-      return Files.readString(properties.getSecretPath());
-    } catch (IOException e) {
-      String message = "failure loading KMS Config";
-      log.atError().setCause(e).log(message);
-      throw new IllegalStateException(message, e);
-    }
   }
 
   private void consumeToken(String token, KeeperKsmProperties props) {
